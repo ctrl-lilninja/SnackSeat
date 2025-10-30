@@ -1,0 +1,43 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>SnackSeat - Login</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">SnackSeat - Login</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Welcome to SnackSeat</ion-card-title>
+      <ion-card-subtitle>Please sign in to continue</ion-card-subtitle>
+    </ion-card-header>
+
+    <ion-card-content>
+      <form (ngSubmit)="onLogin()">
+        <ion-item>
+          <ion-label position="floating">Email</ion-label>
+          <ion-input type="email" [(ngModel)]="loginData.email" name="email" required></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="floating">Password</ion-label>
+          <ion-input type="password" [(ngModel)]="loginData.password" name="password" required></ion-input>
+        </ion-item>
+
+        <ion-button expand="block" type="submit" [disabled]="isLoading">
+          <ion-spinner *ngIf="isLoading" slot="start" name="crescent"></ion-spinner>
+          {{ isLoading ? 'Signing In...' : 'Sign In' }}
+        </ion-button>
+      </form>
+
+      <ion-button fill="clear" expand="block" routerLink="/auth/signup">
+        Don't have an account? Sign Up
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+</ion-content>
