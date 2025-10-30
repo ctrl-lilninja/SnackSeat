@@ -1,0 +1,7 @@
+{
+  "name": "snackseat",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
