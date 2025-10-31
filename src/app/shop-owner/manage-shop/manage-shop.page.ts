@@ -4,6 +4,7 @@ import { Component, OnInit } from '@angular/core';
   selector: 'app-manage-shop',
   templateUrl: './manage-shop.page.html',
   styleUrls: ['./manage-shop.page.scss'],
+  standalone: false,
 })
 export class ManageShopPage implements OnInit {
 

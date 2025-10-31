@@ -1,6 +1,7 @@
-import { Injectable, inject } from '@angular/core';
-import { AngularFireAuth } from '@angular/fire/compat/auth';
-import { AngularFirestore } from '@angular/fire/compat/firestore';
+import { Injectable } from '@angular/core';
+import { Auth, authState, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile } from '@angular/fire/auth';
+import { Firestore } from '@angular/fire/firestore';
+import { doc, docData, setDoc } from '@angular/fire/firestore';
 import { Observable, from, map, switchMap } from 'rxjs';
 import { User, AuthUser } from '../models/user.model';
 
@@ -8,26 +9,28 @@ import { User, AuthUser } from '../models/user.model';
   providedIn: 'root'
 })
 export class AuthService {
-  private afAuth = inject(AngularFireAuth);
-  private firestore = inject(AngularFirestore);
+  constructor(
+    private auth: Auth,
+    private firestore: Firestore
+  ) {}
 
   // Login with email and password
   login(email: string, password: string): Observable<AuthUser> {
-    return from(this.afAuth.signInWithEmailAndPassword(email, password)).pipe(
+    return from(signInWithEmailAndPassword(this.auth, email, password)).pipe(
       map(userCredential => ({
-        uid: userCredential.user!.uid,
-        email: userCredential.user!.email!,
-        displayName: userCredential.user!.displayName || ''
+        uid: userCredential.user.uid,
+        email: userCredential.user.email!,
+        displayName: userCredential.user.displayName || ''
       }))
     );
   }
 
   // Signup with email, password, and role
   signup(email: string, password: string, displayName: string, role: 'admin' | 'customer' | 'shop-owner'): Observable<AuthUser> {
-    return from(this.afAuth.createUserWithEmailAndPassword(email, password)).pipe(
+    return from(createUserWithEmailAndPassword(this.auth, email, password)).pipe(
       switchMap(userCredential => {
         const user: User = {
-          uid: userCredential.user!.uid,
+          uid: userCredential.user.uid,
           email: email,
           displayName: displayName,
           role: role,
@@ -36,8 +39,8 @@ export class AuthService {
         };
 
         // Update display name in Firebase Auth
-        return from(userCredential.user!.updateProfile({ displayName })).pipe(
-          switchMap(() => from(this.firestore.collection('users').doc(user.uid).set(user))),
+        return from(updateProfile(userCredential.user, { displayName })).pipe(
+          switchMap(() => from(setDoc(doc(this.firestore, 'users', user.uid), user))),
           map(() => ({
             uid: user.uid,
             email: user.email,
@@ -50,12 +53,12 @@ export class AuthService {
 
   // Logout
   logout(): Observable<void> {
-    return from(this.afAuth.signOut());
+    return from(signOut(this.auth));
   }
 
   // Get current authenticated user
   getCurrentUser(): Observable<AuthUser | null> {
-    return this.afAuth.authState.pipe(
+    return authState(this.auth).pipe(
       map(user => user ? {
         uid: user.uid,
         email: user.email!,
@@ -66,12 +69,12 @@ export class AuthService {
 
   // Get user profile from Firestore
   getUserProfile(uid: string): Observable<User | undefined> {
-    return this.firestore.collection<User>('users').doc(uid).valueChanges();
+    return docData(doc(this.firestore, 'users', uid)) as Observable<User | undefined>;
   }
 
   // Check if user is authenticated
   isAuthenticated(): Observable<boolean> {
-    return this.afAuth.authState.pipe(
+    return authState(this.auth).pipe(
       map(user => !!user)
     );
   }

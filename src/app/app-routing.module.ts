@@ -43,6 +43,7 @@ const routes: Routes = [
     loadChildren: () => import('./shop-owner/manage-shop/manage-shop.module').then( m => m.ManageShopPageModule),
     canActivate: [ShopOwnerGuard]
   },
+
 ];
 
 @NgModule({

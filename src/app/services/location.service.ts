@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Geolocation } from '@capacitor/geolocation';
 import { Observable, from, map } from 'rxjs';
 import { Location } from '../models/location.model';

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { ToastController } from '@ionic/angular';
 import { AuthService } from '../../services/auth.service';
@@ -7,12 +7,9 @@ import { AuthService } from '../../services/auth.service';
   selector: 'app-signup',
   templateUrl: './signup.page.html',
   styleUrls: ['./signup.page.scss'],
+  standalone: false,
 })
 export class SignupPage implements OnInit {
-  private authService = inject(AuthService);
-  private router = inject(Router);
-  private toastController = inject(ToastController);
-
   signupData = {
     displayName: '',
     email: '',
@@ -22,7 +19,11 @@ export class SignupPage implements OnInit {
   };
   isLoading = false;
 
-  constructor() { }
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private toastController: ToastController
+  ) { }
 
   ngOnInit(): void {
     // Signup page initialization

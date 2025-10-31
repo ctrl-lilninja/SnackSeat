@@ -1,5 +1,6 @@
-import { Injectable, inject } from '@angular/core';
-import { AngularFirestore } from '@angular/fire/compat/firestore';
+import { Injectable } from '@angular/core';
+import { Firestore } from '@angular/fire/firestore';
+import { collection, collectionData, doc, docData, setDoc, updateDoc, addDoc, query, where, orderBy } from '@angular/fire/firestore';
 import { Observable, from, map } from 'rxjs';
 import { Reservation, ReservationCreate, ReservationUpdate } from '../models/reservation.model';
 
@@ -7,13 +8,12 @@ import { Reservation, ReservationCreate, ReservationUpdate } from '../models/res
   providedIn: 'root'
 })
 export class ReservationService {
-  private firestore = inject(AngularFirestore);
+  constructor(private firestore: Firestore) {}
 
   // Create a new reservation
   createReservation(reservationData: ReservationCreate, userId: string): Observable<string> {
-    const reservationId = this.firestore.createId();
     const reservation: Reservation = {
-      id: reservationId,
+      id: '',
       ...reservationData,
       userId: userId,
       status: 'pending',
@@ -21,28 +21,28 @@ export class ReservationService {
       updatedAt: new Date()
     };
 
-    return from(this.firestore.collection('reservations').doc(reservationId).set(reservation)).pipe(
-      map(() => reservationId)
+    return from(addDoc(collection(this.firestore, 'reservations'), reservation)).pipe(
+      map(docRef => {
+        const reservationId = docRef.id;
+        updateDoc(docRef, { id: reservationId });
+        return reservationId;
+      })
     );
   }
 
   // Get reservations by user
   getReservationsByUser(userId: string): Observable<Reservation[]> {
-    return this.firestore.collection<Reservation>('reservations', ref =>
-      ref.where('userId', '==', userId).orderBy('createdAt', 'desc')
-    ).valueChanges();
+    return collectionData(query(collection(this.firestore, 'reservations'), where('userId', '==', userId), orderBy('createdAt', 'desc'))) as Observable<Reservation[]>;
   }
 
   // Get reservations by shop
   getReservationsByShop(shopId: string): Observable<Reservation[]> {
-    return this.firestore.collection<Reservation>('reservations', ref =>
-      ref.where('shopId', '==', shopId).orderBy('createdAt', 'desc')
-    ).valueChanges();
+    return collectionData(query(collection(this.firestore, 'reservations'), where('shopId', '==', shopId), orderBy('createdAt', 'desc'))) as Observable<Reservation[]>;
   }
 
   // Get reservation by ID
   getReservationById(reservationId: string): Observable<Reservation | undefined> {
-    return this.firestore.collection<Reservation>('reservations').doc(reservationId).valueChanges();
+    return docData(doc(this.firestore, 'reservations', reservationId)) as Observable<Reservation | undefined>;
   }
 
   // Update reservation
@@ -51,12 +51,12 @@ export class ReservationService {
       ...updates,
       updatedAt: new Date()
     };
-    return from(this.firestore.collection('reservations').doc(reservationId).update(updateData));
+    return from(updateDoc(doc(this.firestore, 'reservations', reservationId), updateData));
   }
 
   // Cancel reservation
   cancelReservation(reservationId: string): Observable<void> {
-    return from(this.firestore.collection('reservations').doc(reservationId).update({
+    return from(updateDoc(doc(this.firestore, 'reservations', reservationId), {
       status: 'cancelled',
       updatedAt: new Date()
     }));
@@ -64,11 +64,6 @@ export class ReservationService {
 
   // Get reservations by date range for a shop
   getReservationsByDateRange(shopId: string, startDate: Date, endDate: Date): Observable<Reservation[]> {
-    return this.firestore.collection<Reservation>('reservations', ref =>
-      ref.where('shopId', '==', shopId)
-         .where('date', '>=', startDate)
-         .where('date', '<=', endDate)
-         .orderBy('date')
-    ).valueChanges();
+    return collectionData(query(collection(this.firestore, 'reservations'), where('shopId', '==', shopId), where('date', '>=', startDate), where('date', '<=', endDate), orderBy('date'))) as Observable<Reservation[]>;
   }
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { ToastController, AlertController, RefresherCustomEvent } from '@ionic/angular';
 import { ShopService } from '../../services/shop.service';
@@ -10,19 +10,20 @@ import { ShopWithDistance } from '../../models/shop.model';
   selector: 'app-browse-shops',
   templateUrl: './browse-shops.page.html',
   styleUrls: ['./browse-shops.page.scss'],
+  standalone: false,
 })
 export class BrowseShopsPage implements OnInit {
-  private shopService = inject(ShopService);
-  private locationService = inject(LocationService);
-  private authService = inject(AuthService);
-  private router = inject(Router);
-  private toastController = inject(ToastController);
-  private alertController = inject(AlertController);
-
   shops: ShopWithDistance[] = [];
   isLoading = false;
 
-  constructor() { }
+  constructor(
+    private shopService: ShopService,
+    private locationService: LocationService,
+    private authService: AuthService,
+    private router: Router,
+    private toastController: ToastController,
+    private alertController: AlertController
+  ) { }
 
   ngOnInit() {
     this.loadShops();
@@ -99,6 +100,7 @@ export class BrowseShopsPage implements OnInit {
           handler: (data) => {
             if (data.date && data.time && data.seats) {
               this.confirmReservation(shop, data.date, data.time, parseInt(data.seats));
+              return true;
             } else {
               this.showToast('Please fill all fields');
               return false;

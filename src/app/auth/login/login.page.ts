@@ -1,25 +1,27 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { ToastController } from '@ionic/angular';
+import { switchMap } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
+  standalone: false,
 })
 export class LoginPage implements OnInit {
-  private authService = inject(AuthService);
-  private router = inject(Router);
-  private toastController = inject(ToastController);
-
   loginData = {
     email: '',
     password: ''
   };
   isLoading = false;
 
-  constructor() { }
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private toastController: ToastController
+  ) { }
 
   ngOnInit(): void {
     // Login page initialization
@@ -33,25 +35,17 @@ export class LoginPage implements OnInit {
 
     this.isLoading = true;
 
-    this.authService.login(this.loginData.email, this.loginData.password).subscribe({
-      next: async (user) => {
-        // Get user profile to determine role
-        this.authService.getUserProfile(user.uid).subscribe({
-          next: async (profile) => {
-            this.isLoading = false;
-            if (profile) {
-              await this.showToast('Login successful!');
-              this.navigateBasedOnRole(profile.role);
-            } else {
-              await this.showToast('User profile not found');
-            }
-          },
-          error: async (error) => {
-            this.isLoading = false;
-            console.error('Error getting user profile:', error);
-            await this.showToast('Error loading user profile');
-          }
-        });
+    this.authService.login(this.loginData.email, this.loginData.password).pipe(
+      switchMap(user => this.authService.getUserProfile(user.uid))
+    ).subscribe({
+      next: async (profile) => {
+        this.isLoading = false;
+        if (profile) {
+          await this.showToast('Login successful!');
+          this.navigateBasedOnRole(profile.role);
+        } else {
+          await this.showToast('User profile not found');
+        }
       },
       error: async (error) => {
         this.isLoading = false;

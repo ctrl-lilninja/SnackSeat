@@ -4,6 +4,7 @@ import { Component, OnInit } from '@angular/core';
   selector: 'app-make-reservation',
   templateUrl: './make-reservation.page.html',
   styleUrls: ['./make-reservation.page.scss'],
+  standalone: false,
 })
 export class MakeReservationPage implements OnInit {
 
