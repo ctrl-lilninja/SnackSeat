@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { ToastController } from '@ionic/angular';
 import { AuthService } from '../../services/auth.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-signup',
@@ -48,23 +49,48 @@ export class SignupPage implements OnInit {
 
     this.isLoading = true;
 
-    this.authService.signup(
-      this.signupData.email,
-      this.signupData.password,
-      this.signupData.displayName,
-      this.signupData.role
-    ).subscribe({
-      next: async (user) => {
-        this.isLoading = false;
-        await this.showToast('Account created successfully!');
-        this.navigateBasedOnRole(this.signupData.role);
-      },
-      error: async (error) => {
-        this.isLoading = false;
-        console.error('Signup error:', error);
-        await this.showToast('Error creating account. Please try again.');
+    try {
+      await firstValueFrom(this.authService.signup(
+        this.signupData.email,
+        this.signupData.password,
+        this.signupData.displayName,
+        this.signupData.role
+      ));
+      this.isLoading = false;
+      await this.showToast('Account created successfully!');
+      // Clear the form
+      this.signupData = {
+        displayName: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+        role: '' as 'customer' | 'shop-owner' | ''
+      };
+      this.navigateBasedOnRole(this.signupData.role);
+    } catch (error: any) {
+      this.isLoading = false;
+      console.error('Signup error:', error);
+      let errorMessage = 'Error creating account. Please try again.';
+      if (error.code) {
+        switch (error.code) {
+          case 'auth/email-already-in-use':
+            errorMessage = 'This email is already in use. Please try logging in or use a different email.';
+            break;
+          case 'auth/weak-password':
+            errorMessage = 'Password is too weak. Please choose a stronger password.';
+            break;
+          case 'auth/invalid-email':
+            errorMessage = 'Invalid email address. Please enter a valid email.';
+            break;
+          case 'auth/operation-not-allowed':
+            errorMessage = 'Email/password accounts are not enabled. Please contact support.';
+            break;
+          default:
+            errorMessage = 'An unexpected error occurred. Please try again.';
+        }
       }
-    });
+      await this.showToast(errorMessage);
+    }
   }
 
   private navigateBasedOnRole(role: string) {

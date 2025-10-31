@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Injector, runInInjectionContext } from '@angular/core';
 import { Auth, authState, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile } from '@angular/fire/auth';
 import { Firestore } from '@angular/fire/firestore';
 import { doc, docData, setDoc } from '@angular/fire/firestore';
@@ -11,7 +11,8 @@ import { User, AuthUser } from '../models/user.model';
 export class AuthService {
   constructor(
     private auth: Auth,
-    private firestore: Firestore
+    private firestore: Firestore,
+    private injector: Injector
   ) {}
 
   // Login with email and password
@@ -58,7 +59,7 @@ export class AuthService {
 
   // Get current authenticated user
   getCurrentUser(): Observable<AuthUser | null> {
-    return authState(this.auth).pipe(
+    return runInInjectionContext(this.injector, () => authState(this.auth)).pipe(
       map(user => user ? {
         uid: user.uid,
         email: user.email!,
@@ -69,12 +70,12 @@ export class AuthService {
 
   // Get user profile from Firestore
   getUserProfile(uid: string): Observable<User | undefined> {
-    return docData(doc(this.firestore, 'users', uid)) as Observable<User | undefined>;
+    return runInInjectionContext(this.injector, () => docData(doc(this.firestore, 'users', uid))) as Observable<User | undefined>;
   }
 
   // Check if user is authenticated
   isAuthenticated(): Observable<boolean> {
-    return authState(this.auth).pipe(
+    return runInInjectionContext(this.injector, () => authState(this.auth)).pipe(
       map(user => !!user)
     );
   }

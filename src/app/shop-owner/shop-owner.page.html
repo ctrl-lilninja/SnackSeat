@@ -1,96 +1,83 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>Manage Shop</ion-title>
+    <ion-title>My Shops</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
   <ion-header collapse="condense">
     <ion-toolbar>
-      <ion-title size="large">Manage Shop</ion-title>
+      <ion-title size="large">My Shops</ion-title>
     </ion-toolbar>
   </ion-header>
 
-  <!-- Create Shop Button if no shop exists -->
-  <div *ngIf="!shop" class="create-shop-container">
-    <ion-button expand="block" size="large" color="primary" (click)="showCreateModal()">
-      <ion-icon name="add-circle" slot="start"></ion-icon>
-      ➕ Create Shop
-    </ion-button>
-  </div>
+  <!-- Add Shop FAB -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="shops.length < 2">
+    <ion-fab-button (click)="showCreateModal()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 
-  <!-- Shop Owner Details Card if shop owner exists -->
-  <ion-card *ngIf="shopOwner">
+  <!-- Shops List -->
+  <ion-card *ngFor="let shop of shops">
     <ion-card-header>
-      <ion-card-title>{{ shopOwner.shopName }}</ion-card-title>
-      <ion-card-subtitle>{{ shopOwner.category }}</ion-card-subtitle>
-    </ion-card-header>
-    <ion-card-content>
-      <p><strong>Description:</strong> {{ shopOwner.description }}</p>
-      <p><strong>Email:</strong> {{ shopOwner.email }}</p>
-      <p><strong>Contact:</strong> {{ shopOwner.contactNumber }}</p>
-      <p><strong>Total Seats:</strong> {{ shopOwner.seats }}</p>
-      <p><strong>Available Seats:</strong> {{ shopOwner.availableSeats }}
-        <ion-button fill="clear" size="small" (click)="updateAvailableSeats()">
-          <ion-icon name="create" slot="icon-only"></ion-icon>
-        </ion-button>
-      </p>
-      <p><strong>Opening Time:</strong> {{ shopOwner.openingTime }}
-        <ion-button fill="clear" size="small" (click)="updateOpeningTime()">
-          <ion-icon name="create" slot="icon-only"></ion-icon>
-        </ion-button>
-      </p>
-      <p><strong>Closing Time:</strong> {{ shopOwner.closingTime }}
-        <ion-button fill="clear" size="small" (click)="updateClosingTime()">
-          <ion-icon name="create" slot="icon-only"></ion-icon>
-        </ion-button>
-      </p>
-      <p><strong>Reservation Date:</strong> {{ shopOwner.reservationDate }}
-        <ion-button fill="clear" size="small" (click)="updateReservationDate()">
-          <ion-icon name="create" slot="icon-only"></ion-icon>
-        </ion-button>
-      </p>
-      <p><strong>Status:</strong> {{ shopOwner.isOpen ? 'Open' : 'Closed' }}</p>
-    </ion-card-content>
-  </ion-card>
-
-  <!-- Shops List Card -->
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>My Shops</ion-card-title>
-      <ion-button fill="clear" slot="end" (click)="showCreateModal()">
-        <ion-icon name="add-circle" slot="start"></ion-icon>
-        Add Shop
+      <ion-card-title>{{ shop.name }}</ion-card-title>
+      <ion-card-subtitle>{{ shop.category }}</ion-card-subtitle>
+      <ion-button fill="clear" color="danger" slot="end" (click)="removeShop(shop)">
+        <ion-icon name="trash" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-card-header>
     <ion-card-content>
-      <div *ngIf="shops.length > 0; else noShops">
-        <ion-card *ngFor="let shop of shops" style="margin-bottom: 16px;">
-          <ion-card-header>
-            <ion-card-title>{{ shop.name }}</ion-card-title>
-            <ion-card-subtitle>{{ shop.category }}</ion-card-subtitle>
-          </ion-card-header>
-          <ion-card-content>
-            <p><strong>Description:</strong> {{ shop.description }}</p>
-            <p><strong>Available Seats:</strong> {{ shop.availableSeats }}</p>
-            <p><strong>Status:</strong> {{ shop.isOpen ? 'Open' : 'Closed' }}</p>
-            <p><strong>Opening Time:</strong> {{ shop.openingTime }}</p>
-            <p><strong>Closing Time:</strong> {{ shop.closingTime }}</p>
-            <p><strong>Reservation Date:</strong> {{ shop.reservationDate }}</p>
-            <ion-button fill="outline" color="danger" (click)="removeShop(shop)">
-              <ion-icon name="trash" slot="start"></ion-icon>
-              Remove
-            </ion-button>
-          </ion-card-content>
-        </ion-card>
-      </div>
-      <ng-template #noShops>
-        <ion-item>
-          <ion-label>
-            <p>No shops yet. Click "Add Shop" to create your first shop.</p>
-          </ion-label>
-        </ion-item>
-      </ng-template>
+      <p><strong>Description:</strong> {{ shop.description }}</p>
+      <p><strong>Email:</strong> {{ shop.email }}</p>
+      <p><strong>Phone:</strong> {{ shop.phone }}</p>
+      <p><strong>Total Seats:</strong> {{ shop.totalSeats }}</p>
+      <p><strong>Total Tables:</strong> {{ shop.totalTables }}</p>
+      <p><strong>Available Seats:</strong> {{ shop.availableSeats }}
+        <ion-button fill="clear" size="small" (click)="updateAvailableSeats(shop)">
+          <ion-icon name="create" slot="icon-only"></ion-icon>
+        </ion-button>
+      </p>
+      <p><strong>Available Tables:</strong> {{ shop.availableTables }}
+        <ion-button fill="clear" size="small" (click)="updateAvailableTables(shop)">
+          <ion-icon name="create" slot="icon-only"></ion-icon>
+        </ion-button>
+      </p>
+      <p><strong>Opening Time:</strong> {{ shop.openingTime }}
+        <ion-button fill="clear" size="small" (click)="updateOpeningTime(shop)">
+          <ion-icon name="create" slot="icon-only"></ion-icon>
+        </ion-button>
+        <ion-button fill="clear" size="small" (click)="setToNow(shop, 'openingTime')">
+          <ion-icon name="time" slot="icon-only"></ion-icon>
+        </ion-button>
+      </p>
+      <p><strong>Closing Time:</strong> {{ shop.closingTime }}
+        <ion-button fill="clear" size="small" (click)="updateClosingTime(shop)">
+          <ion-icon name="create" slot="icon-only"></ion-icon>
+        </ion-button>
+        <ion-button fill="clear" size="small" (click)="setToNow(shop, 'closingTime')">
+          <ion-icon name="time" slot="icon-only"></ion-icon>
+        </ion-button>
+        <ion-button fill="clear" size="small" (click)="extendOneHour(shop)">
+          <ion-icon name="add-circle" slot="icon-only"></ion-icon>
+        </ion-button>
+      </p>
+      <p><strong>Reservation Date:</strong> {{ shop.reservationDate }}</p>
+      <p><strong>Status:</strong>
+        <ion-toggle [checked]="shop.isOpen" (ionChange)="toggleShopStatus(shop)" slot="end"></ion-toggle>
+        {{ shop.isOpen ? 'Open' : 'Closed' }}
+      </p>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- No Shops Message -->
+  <ion-card *ngIf="shops.length === 0">
+    <ion-card-content>
+      <p class="no-shops-message">You haven't created any shops yet.</p>
+      <ion-button expand="block" (click)="showCreateModal()">
+        <ion-icon name="add-circle" slot="start"></ion-icon>
+        Create Your First Shop
+      </ion-button>
     </ion-card-content>
   </ion-card>
 
@@ -99,7 +86,7 @@
     <ng-template>
       <ion-header>
         <ion-toolbar>
-          <ion-title>Create Shop</ion-title>
+          <ion-title>Create New Shop</ion-title>
           <ion-buttons slot="end">
             <ion-button (click)="isCreating = false">Close</ion-button>
           </ion-buttons>
@@ -114,7 +101,7 @@
             <ion-card-content>
               <ion-item>
                 <ion-label position="stacked">Shop Name *</ion-label>
-                <ion-input formControlName="shopName" placeholder="Enter shop name"></ion-input>
+                <ion-input formControlName="name" placeholder="Enter shop name"></ion-input>
               </ion-item>
 
               <ion-item>
@@ -123,8 +110,8 @@
               </ion-item>
 
               <ion-item>
-                <ion-label position="stacked">Contact Number *</ion-label>
-                <ion-input formControlName="contactNumber" placeholder="Enter phone number"></ion-input>
+                <ion-label position="stacked">Contact Phone *</ion-label>
+                <ion-input formControlName="phone" placeholder="Enter phone number"></ion-input>
               </ion-item>
 
               <ion-item>
@@ -141,7 +128,12 @@
 
               <ion-item>
                 <ion-label position="stacked">Total Seats *</ion-label>
-                <ion-input formControlName="seats" type="number" min="1"></ion-input>
+                <ion-input formControlName="totalSeats" type="number" min="1"></ion-input>
+              </ion-item>
+
+              <ion-item>
+                <ion-label position="stacked">Total Tables *</ion-label>
+                <ion-input formControlName="totalTables" type="number" min="1"></ion-input>
               </ion-item>
 
               <ion-item>
@@ -150,18 +142,29 @@
               </ion-item>
 
               <ion-item>
+                <ion-label position="stacked">Available Tables *</ion-label>
+                <ion-input formControlName="availableTables" type="number" min="0"></ion-input>
+              </ion-item>
+
+              <ion-item>
                 <ion-label position="stacked">Opening Time *</ion-label>
-                <ion-datetime formControlName="openingTime" display-format="HH:mm" picker-format="HH:mm"></ion-datetime>
+                <ion-datetime formControlName="openingTime" display-format="HH:mm" picker-format="HH:mm" placeholder="Select opening time"></ion-datetime>
+                <ion-button fill="clear" slot="end" (click)="setToNow(null, 'openingTime')">
+                  <ion-icon name="time" slot="icon-only"></ion-icon>
+                </ion-button>
               </ion-item>
 
               <ion-item>
                 <ion-label position="stacked">Closing Time *</ion-label>
-                <ion-datetime formControlName="closingTime" display-format="HH:mm" picker-format="HH:mm"></ion-datetime>
+                <ion-datetime formControlName="closingTime" display-format="HH:mm" picker-format="HH:mm" placeholder="Select closing time"></ion-datetime>
+                <ion-button fill="clear" slot="end" (click)="setToNow(null, 'closingTime')">
+                  <ion-icon name="time" slot="icon-only"></ion-icon>
+                </ion-button>
               </ion-item>
 
               <ion-item>
-                <ion-label position="stacked">Reservation Date Availability *</ion-label>
-                <ion-datetime formControlName="reservationDate" display-format="YYYY-MM-DD" picker-format="YYYY-MM-DD"></ion-datetime>
+                <ion-label position="stacked">Reservation Date *</ion-label>
+                <ion-datetime formControlName="reservationDate" display-format="YYYY-MM-DD" picker-format="YYYY-MM-DD" placeholder="Select date"></ion-datetime>
               </ion-item>
 
               <ion-item>
@@ -180,12 +183,12 @@
 
               <ion-item>
                 <ion-label position="stacked">Latitude</ion-label>
-                <ion-input formControlName="location.lat" type="number" step="0.000001"></ion-input>
+                <ion-input formControlName="latitude" type="number" step="0.000001"></ion-input>
               </ion-item>
 
               <ion-item>
                 <ion-label position="stacked">Longitude</ion-label>
-                <ion-input formControlName="location.lng" type="number" step="0.000001"></ion-input>
+                <ion-input formControlName="longitude" type="number" step="0.000001"></ion-input>
               </ion-item>
 
               <ion-button expand="block" (click)="saveLocation()" color="secondary">
@@ -216,7 +219,7 @@
             <ion-label>
               <h2>{{reservation.customerName}}</h2>
               <p>{{reservation.reservationDate}} at {{reservation.reservationTime}}</p>
-              <p>Seats: {{reservation.numberOfSeats}} | Status: {{reservation.status}}</p>
+              <p>Table: {{reservation.tableNumber}} | Seat: {{reservation.seatNumber}} | Status: {{reservation.status}}</p>
             </ion-label>
           </ion-item>
           <div slot="content">
@@ -224,15 +227,16 @@
               <ion-label>
                 <p><strong>Email:</strong> {{reservation.customerEmail}}</p>
                 <p><strong>Phone:</strong> {{reservation.contactNumber}}</p>
+                <p><strong>Seats:</strong> {{reservation.numberOfSeats}}</p>
               </ion-label>
             </ion-item>
             <ion-button
               *ngIf="reservation.status === 'pending'"
               fill="outline"
               color="success"
-              (click)="acceptReservation(reservation)">
+              (click)="confirmReservation(reservation)">
               <ion-icon name="checkmark" slot="start"></ion-icon>
-              Accept
+              Confirm
             </ion-button>
             <ion-button
               *ngIf="reservation.status === 'pending'"

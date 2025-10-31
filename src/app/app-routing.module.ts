@@ -40,8 +40,12 @@ const routes: Routes = [
   },
   {
     path: 'shop-owner/manage-shop',
-    loadChildren: () => import('./shop-owner/manage-shop/manage-shop.module').then( m => m.ManageShopPageModule),
+    loadChildren: () => import('./shop-owner/shop-owner.module').then( m => m.ShopOwnerPageModule),
     canActivate: [ShopOwnerGuard]
+  },
+  {
+    path: 'my-reservations',
+    loadChildren: () => import('./customer/my-reservations/my-reservations.module').then( m => m.MyReservationsPageModule)
   },
 
 ];

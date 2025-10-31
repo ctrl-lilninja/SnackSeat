@@ -1,9 +1,21 @@
-- [x] Add `standalone: false` to DashboardPage @Component
-- [x] Add `standalone: false` to LoginPage @Component
-- [x] Add `standalone: false` to SignupPage @Component
-- [x] Add `standalone: false` to BrowseShopsPage @Component
-- [x] Add `standalone: false` to MakeReservationPage @Component
-- [x] Add `standalone: false` to ManageShopPage @Component
-- [x] Add `standalone: false` to RegisterShopPage @Component
-- [x] Fix handler function in BrowseShopsPage to return true on success
-- [x] Run ionic build to verify fixes
+# Reservation Acceptance Enhancement Tasks
+
+## 1. Update ReservationService.acceptReservation()
+- [ ] Modify acceptReservation method to accept additional parameters: tableNumber, seatNumber, numberOfSeats
+- [ ] Update the method to store these values in the reservation document
+
+## 2. Update ManageShopPage.acceptReservation()
+- [ ] Replace simple alert with a modal form for collecting acceptance details
+- [ ] Add form fields for table number, seat number, number of seats, and acceptance notes
+- [ ] Pre-populate fields with existing reservation data
+- [ ] Update the method call to pass the new parameters
+
+## 3. Enhance MyReservationsPage for Mini Receipt
+- [ ] Add a dedicated mini receipt section for accepted reservations
+- [ ] Display table number, seat number, number of seats, acceptance notes, and accepted timestamp
+- [ ] Style the receipt to look like a proper mini receipt
+
+## 4. Test and Verify
+- [ ] Test status transitions and button visibility
+- [ ] Verify real-time updates work correctly
+- [ ] Test error handling for acceptance process

@@ -2,23 +2,20 @@ export interface Shop {
   id: string;
   name: string;
   description: string;
-  address: string;
+  category: string;
   latitude: number;
   longitude: number;
   phone: string;
   email: string;
   ownerId: string;
   totalSeats: number;
+  totalTables: number;
   availableSeats: number;
-  openingHours: {
-    monday: string;
-    tuesday: string;
-    wednesday: string;
-    thursday: string;
-    friday: string;
-    saturday: string;
-    sunday: string;
-  };
+  availableTables: number;
+  openingTime: string;
+  closingTime: string;
+  reservationDate: string;
+  isOpen: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -26,21 +23,19 @@ export interface Shop {
 export interface ShopCreate {
   name: string;
   description: string;
-  address: string;
+  category: string;
   latitude: number;
   longitude: number;
   phone: string;
   email: string;
   totalSeats: number;
-  openingHours: {
-    monday: string;
-    tuesday: string;
-    wednesday: string;
-    thursday: string;
-    friday: string;
-    saturday: string;
-    sunday: string;
-  };
+  totalTables: number;
+  availableSeats: number;
+  availableTables: number;
+  openingTime: string;
+  closingTime: string;
+  reservationDate: string;
+  isOpen: boolean;
 }
 
 export interface ShopWithDistance extends Shop {

@@ -1,13 +1,129 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>make-reservation</ion-title>
+    <ion-title>Make Reservation</ion-title>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/customer/browse-shops"></ion-back-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
   <ion-header collapse="condense">
     <ion-toolbar>
-      <ion-title size="large">make-reservation</ion-title>
+      <ion-title size="large">Make Reservation</ion-title>
     </ion-toolbar>
   </ion-header>
+
+  <!-- Shop Details Card -->
+  <ion-card *ngIf="shop">
+    <ion-card-header>
+      <ion-card-title>{{ shop.name }}</ion-card-title>
+      <ion-card-subtitle>{{ shop.category }}</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <p>{{ shop.description }}</p>
+      <ion-row>
+        <ion-col size="6">
+          <p><strong>Available Seats:</strong> {{ shop.availableSeats }}</p>
+        </ion-col>
+        <ion-col size="6">
+          <p><strong>Available Tables:</strong> {{ shop.availableTables }}</p>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col size="6">
+          <p><strong>Opening:</strong> {{ shop.openingTime }}</p>
+        </ion-col>
+        <ion-col size="6">
+          <p><strong>Closing:</strong> {{ shop.closingTime }}</p>
+        </ion-col>
+      </ion-row>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Loading Spinner -->
+  <ion-card *ngIf="isLoading">
+    <ion-card-content>
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Loading shop details...</p>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Reservation Form -->
+  <form [formGroup]="reservationForm" (ngSubmit)="onSubmit()" *ngIf="!isLoading && shop">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Reservation Details</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <!-- Date Selection -->
+        <ion-item>
+          <ion-label position="stacked">Reservation Date</ion-label>
+          <ion-datetime
+            formControlName="date"
+            [min]="minDate"
+            [max]="maxDate"
+            displayFormat="MMM DD, YYYY"
+            placeholder="Select date">
+          </ion-datetime>
+        </ion-item>
+
+        <!-- Time Selection -->
+        <ion-item>
+          <ion-label position="stacked">Reservation Time</ion-label>
+          <ion-datetime
+            formControlName="time"
+            displayFormat="HH:mm"
+            pickerFormat="HH:mm"
+            placeholder="Select time">
+          </ion-datetime>
+          <ion-note slot="error" *ngIf="reservationForm.get('time')?.hasError('timeOutsideHours') && reservationForm.get('time')?.touched">
+            Time must be within shop hours ({{ shop?.openingTime }} - {{ shop?.closingTime }})
+          </ion-note>
+        </ion-item>
+
+        <!-- Number of Seats -->
+        <ion-item>
+          <ion-label position="stacked">Number of Seats</ion-label>
+          <ion-input
+            type="number"
+            formControlName="numberOfSeats"
+            placeholder="Enter number of seats"
+            min="1"
+            [max]="shop.availableSeats">
+          </ion-input>
+        </ion-item>
+
+        <!-- Special Requests -->
+        <ion-item>
+          <ion-label position="stacked">Special Requests (Optional)</ion-label>
+          <ion-textarea
+            formControlName="specialRequests"
+            placeholder="Any special requests or notes"
+            rows="3">
+          </ion-textarea>
+        </ion-item>
+
+        <!-- Submit Button -->
+        <ion-button
+          type="submit"
+          expand="block"
+          [disabled]="reservationForm.invalid || isSubmitting"
+          style="margin-top: 20px;">
+          <ion-icon name="checkmark-circle-outline" slot="start" *ngIf="!isSubmitting"></ion-icon>
+          <ion-spinner name="crescent" slot="start" *ngIf="isSubmitting"></ion-spinner>
+          {{ isSubmitting ? 'Creating Reservation...' : 'Create Reservation' }}
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+  </form>
+
+  <!-- Error Message -->
+  <ion-card *ngIf="errorMessage">
+    <ion-card-content>
+      <ion-text color="danger">
+        <p>{{ errorMessage }}</p>
+      </ion-text>
+    </ion-card-content>
+  </ion-card>
 </ion-content>

@@ -1,0 +1,109 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>My Reservations</ion-title>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/customer/browse-shops"></ion-back-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">My Reservations</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Loading Spinner -->
+  <ion-card *ngIf="isLoading">
+    <ion-card-content>
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Loading reservations...</p>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- No Reservations -->
+  <ion-card *ngIf="!isLoading && reservations.length === 0">
+    <ion-card-content>
+      <ion-text color="medium">
+        <p>You haven't made any reservations yet.</p>
+      </ion-text>
+      <ion-button fill="solid" routerLink="/customer/browse-shops" style="margin-top: 16px;">
+        <ion-icon name="restaurant-outline" slot="start"></ion-icon>
+        Browse Shops
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Reservations List -->
+  <ion-card *ngFor="let reservation of reservations" class="reservation-card">
+    <ion-card-header>
+      <ion-card-title>{{ reservation.shopName || 'Shop' }}</ion-card-title>
+      <ion-card-subtitle>
+        <ion-badge [color]="getStatusColor(reservation.status)">
+          {{ reservation.status | titlecase }}
+        </ion-badge>
+      </ion-card-subtitle>
+    </ion-card-header>
+
+    <ion-card-content>
+      <ion-row>
+        <ion-col size="6">
+          <p><strong>Date:</strong></p>
+          <p>{{ reservation.reservationDate }}</p>
+        </ion-col>
+        <ion-col size="6">
+          <p><strong>Time:</strong></p>
+          <p>{{ reservation.reservationTime }}</p>
+        </ion-col>
+      </ion-row>
+
+      <ion-row>
+        <ion-col size="6">
+          <p><strong>Seats:</strong> {{ reservation.numberOfSeats }}</p>
+        </ion-col>
+        <ion-col size="6">
+          <p><strong>Table:</strong> {{ reservation.tableNumber }}</p>
+        </ion-col>
+      </ion-row>
+
+      <ion-row>
+        <ion-col size="6">
+          <p><strong>Seat:</strong> {{ reservation.seatNumber }}</p>
+        </ion-col>
+        <ion-col size="6">
+          <p><strong>Contact:</strong></p>
+          <p>{{ reservation.contactNumber }}</p>
+        </ion-col>
+      </ion-row>
+
+      <p *ngIf="reservation.specialRequests"><strong>Special Requests:</strong> {{ reservation.specialRequests }}</p>
+
+      <!-- Acceptance Details for Accepted Reservations -->
+      <div *ngIf="reservation.status === 'accepted'">
+        <p><strong>Accepted At:</strong> {{ reservation.acceptedAt?.toDate() | date:'short' }}</p>
+        <p><strong>Acceptance Notes:</strong> {{ reservation.acceptanceNotes || 'No additional notes' }}</p>
+      </div>
+
+      <!-- Action Buttons -->
+      <ion-row *ngIf="reservation.status === 'pending' || reservation.status === 'accepted'">
+        <ion-col size="6">
+          <ion-button fill="outline" color="danger" (click)="cancelReservation(reservation)" size="small">
+            <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+            Cancel
+          </ion-button>
+        </ion-col>
+        <ion-col size="6">
+          <ion-button fill="solid" color="primary" (click)="callShop(reservation)" size="small">
+            <ion-icon name="call-outline" slot="start"></ion-icon>
+            Call
+          </ion-button>
+        </ion-col>
+      </ion-row>
+    </ion-card-content>
+  </ion-card>
+</ion-content>
