@@ -4,9 +4,9 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { IonicModule } from '@ionic/angular';
 
-import { MakeReservationPageRoutingModule } from './make-reservation-routing.module';
+import { ShopOwnerPageRoutingModule } from './shop-owner-routing.module';
 
-import { MakeReservationPage } from './make-reservation.page';
+import { ShopOwnerPage } from './shop-owner.page';
 
 @NgModule({
   imports: [
@@ -14,8 +14,8 @@ import { MakeReservationPage } from './make-reservation.page';
     FormsModule,
     ReactiveFormsModule,
     IonicModule,
-    MakeReservationPageRoutingModule
+    ShopOwnerPageRoutingModule
   ],
-  declarations: [MakeReservationPage]
+  declarations: [ShopOwnerPage]
 })
-export class MakeReservationPageModule {}
+export class ShopOwnerPageModule {}

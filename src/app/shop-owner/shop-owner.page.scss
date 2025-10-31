@@ -19,34 +19,25 @@ ion-button {
   margin: 8px 0;
 }
 
-.form-error {
-  color: var(--ion-color-danger);
-  font-size: 0.875rem;
-  margin-top: 4px;
-}
-
-.create-shop-container {
-  padding: 20px;
+.no-shops-message {
   text-align: center;
-}
-
-.create-shop-container ion-button {
-  height: 60px;
   font-size: 18px;
-}
-
-.shop-details-card {
+  color: var(--ion-color-medium);
   margin-bottom: 16px;
 }
 
-.shop-details-card ion-card-content p {
+.shop-card {
+  margin-bottom: 16px;
+}
+
+.shop-card ion-card-content p {
   margin: 8px 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.shop-details-card ion-button {
+.shop-card ion-button {
   margin: 0;
   --padding-start: 8px;
   --padding-end: 8px;
@@ -62,4 +53,15 @@ ion-modal {
   ion-modal {
     --width: 80%;
   }
+}
+
+ion-fab {
+  margin-bottom: 16px;
+  margin-right: 16px;
+}
+
+.form-error {
+  color: var(--ion-color-danger);
+  font-size: 0.875rem;
+  margin-top: 4px;
 }

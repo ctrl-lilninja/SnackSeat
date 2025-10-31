@@ -1,0 +1,65 @@
+.shop-card {
+  margin-bottom: 16px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease-in-out;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  }
+}
+
+ion-card-content {
+  padding: 16px;
+}
+
+.description {
+  margin-bottom: 12px;
+  color: #666;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.contact-link {
+  color: #007bff;
+  text-decoration: none;
+  font-size: 14px;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+ion-row {
+  margin-bottom: 8px;
+}
+
+ion-col {
+  padding: 0 4px;
+}
+
+ion-button {
+  margin-top: 8px;
+
+  &:first-of-type {
+    margin-top: 16px;
+  }
+}
+
+// Responsive grid adjustments
+@media (max-width: 576px) {
+  .shop-card {
+    margin-bottom: 12px;
+  }
+
+  ion-card-content {
+    padding: 12px;
+  }
+}
+
+@media (min-width: 768px) {
+  ion-grid {
+    padding: 0 8px;
+  }
+}

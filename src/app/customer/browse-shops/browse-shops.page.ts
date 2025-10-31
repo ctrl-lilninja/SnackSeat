@@ -1,10 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { ToastController, AlertController, RefresherCustomEvent } from '@ionic/angular';
+import { ToastController, AlertController, RefresherCustomEvent, ModalController } from '@ionic/angular';
+import { Browser } from '@capacitor/browser';
 import { ShopService } from '../../services/shop.service';
-import { LocationService } from '../../services/location.service';
 import { AuthService } from '../../services/auth.service';
-import { ShopWithDistance } from '../../models/shop.model';
+import { ReservationService } from '../../services/reservation.service';
+import { Shop } from '../../models/shop.model';
+import { ReservationCreate } from '../../models/reservation.model';
 
 @Component({
   selector: 'app-browse-shops',
@@ -13,126 +15,55 @@ import { ShopWithDistance } from '../../models/shop.model';
   standalone: false,
 })
 export class BrowseShopsPage implements OnInit {
-  shops: ShopWithDistance[] = [];
-  isLoading = false;
+  shops: Shop[] = [];
+  isLoading = true;
 
   constructor(
     private shopService: ShopService,
-    private locationService: LocationService,
     private authService: AuthService,
+    private reservationService: ReservationService,
     private router: Router,
     private toastController: ToastController,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private modalController: ModalController
   ) { }
 
   ngOnInit() {
     this.loadShops();
   }
 
-  async loadShops() {
-    this.isLoading = true;
-    try {
-      const shops = await this.shopService.getShops().toPromise();
-      if (shops) {
-        this.shops = await this.locationService.addDistanceToShops(shops);
+  loadShops() {
+    this.shopService.getAllShops().subscribe({
+      next: (shops) => {
+        this.shops = shops;
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading shops:', error);
+        this.showToast('Error loading shops');
+        this.isLoading = false;
       }
-    } catch (error) {
-      console.error('Error loading shops:', error);
-      this.showToast('Error loading shops');
-    } finally {
-      this.isLoading = false;
-    }
+    });
   }
 
   async doRefresh(event: RefresherCustomEvent) {
-    await this.loadShops();
+    this.loadShops();
     event.target.complete();
   }
 
-  async getCurrentLocation() {
-    try {
-      const location = await this.locationService.getCurrentLocation().toPromise();
-      if (location) {
-        await this.showToast('Location updated');
-        await this.loadShops(); // Reload shops with new location
-      }
-    } catch (error) {
-      console.error('Error getting location:', error);
-      this.showToast('Error getting location');
-    }
-  }
-
-  viewShop(shop: ShopWithDistance) {
-    // Navigate to shop details (could be implemented later)
-    this.showToast(`Viewing ${shop.name}`);
-  }
-
-  async makeReservation(shop: ShopWithDistance) {
-    const alert = await this.alertController.create({
-      header: 'Make Reservation',
-      message: `Reserve a seat at ${shop.name}?`,
-      inputs: [
-        {
-          name: 'date',
-          type: 'date',
-          placeholder: 'Select date'
-        },
-        {
-          name: 'time',
-          type: 'time',
-          placeholder: 'Select time'
-        },
-        {
-          name: 'seats',
-          type: 'number',
-          placeholder: 'Number of seats',
-          min: 1,
-          max: shop.availableSeats
-        }
-      ],
-      buttons: [
-        {
-          text: 'Cancel',
-          role: 'cancel'
-        },
-        {
-          text: 'Reserve',
-          handler: (data) => {
-            if (data.date && data.time && data.seats) {
-              this.confirmReservation(shop, data.date, data.time, parseInt(data.seats));
-              return true;
-            } else {
-              this.showToast('Please fill all fields');
-              return false;
-            }
-          }
-        }
-      ]
+  async reserve(shop: Shop) {
+    this.router.navigate(['/customer/make-reservation'], {
+      queryParams: { shopId: shop.id, ownerId: shop.ownerId }
     });
-
-    await alert.present();
   }
 
-  private async confirmReservation(shop: ShopWithDistance, date: string, time: string, seats: number) {
+  async openDirections(shop: Shop) {
     try {
-      const currentUser = await this.authService.getCurrentUser().toPromise();
-      if (!currentUser) {
-        this.showToast('Please login first');
-        return;
-      }
-
-      const reservationDate = new Date(`${date}T${time}`);
-      // Navigate to make-reservation page with data
-      this.router.navigate(['/customer/make-reservation'], {
-        queryParams: {
-          shopId: shop.id,
-          date: reservationDate.toISOString(),
-          seats: seats
-        }
-      });
+      const url = `https://www.google.com/maps/search/?api=1&query=${shop.latitude},${shop.longitude}`;
+      await Browser.open({ url });
     } catch (error) {
-      console.error('Error creating reservation:', error);
-      this.showToast('Error creating reservation');
+      console.error('Error opening directions:', error);
+      this.showToast('Error opening directions');
     }
   }
 

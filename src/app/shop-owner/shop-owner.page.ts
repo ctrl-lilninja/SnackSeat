@@ -1,25 +1,23 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { LoadingController, ToastController, AlertController, ModalController } from '@ionic/angular';
-import { AuthService } from '../../services/auth.service';
-import { ShopService } from '../../services/shop.service';
-import { ReservationService } from '../../services/reservation.service';
-import { LocationService } from '../../services/location.service';
-import { ShopOwner, ShopOwnerCreate } from '../../models/shop-owner.model';
-import { Shop } from '../../models/shop.model';
-import { Reservation } from '../../models/reservation.model';
+import { AuthService } from '../services/auth.service';
+import { ShopService } from '../services/shop.service';
+import { ReservationService } from '../services/reservation.service';
+import { LocationService } from '../services/location.service';
+import { Shop, ShopCreate } from '../models/shop.model';
+import { Reservation } from '../models/reservation.model';
 import { Subscription } from 'rxjs';
 
 declare let L: any; // Leaflet global
 
 @Component({
-  selector: 'app-manage-shop',
-  templateUrl: './manage-shop.page.html',
-  styleUrls: ['./manage-shop.page.scss'],
+  selector: 'app-shop-owner',
+  templateUrl: './shop-owner.page.html',
+  styleUrls: ['./shop-owner.page.scss'],
   standalone: false,
 })
-export class ManageShopPage implements OnInit, OnDestroy {
-  shopOwner: ShopOwner | null = null;
+export class ShopOwnerPage implements OnInit, OnDestroy {
   shops: Shop[] = [];
   createShopForm!: FormGroup;
   reservations: Reservation[] = [];
@@ -48,8 +46,6 @@ export class ManageShopPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadCurrentUser();
-    this.loadReservations();
-    this.loadShops();
   }
 
   ngOnDestroy(): void {
@@ -61,21 +57,21 @@ export class ManageShopPage implements OnInit, OnDestroy {
 
   private initializeCreateForm(): void {
     this.createShopForm = this.fb.group({
-      shopName: ['', Validators.required],
+      name: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
-      contactNumber: ['', Validators.required],
+      phone: ['', Validators.required],
       description: ['', Validators.required],
       category: ['', Validators.required],
-      seats: [1, [Validators.required, Validators.min(1)]],
+      totalSeats: [1, [Validators.required, Validators.min(1)]],
+      totalTables: [1, [Validators.required, Validators.min(1)]],
       availableSeats: [1, [Validators.required, Validators.min(0)]],
+      availableTables: [1, [Validators.required, Validators.min(0)]],
       openingTime: ['', Validators.required],
       closingTime: ['', Validators.required],
       reservationDate: ['', Validators.required],
       isOpen: [true],
-      location: this.fb.group({
-        lat: [0, Validators.required],
-        lng: [0, Validators.required]
-      })
+      latitude: [0, Validators.required],
+      longitude: [0, Validators.required]
     });
   }
 
@@ -83,19 +79,8 @@ export class ManageShopPage implements OnInit, OnDestroy {
     const sub = this.authService.getCurrentUser().subscribe(user => {
       if (user) {
         this.currentUserUid = user.uid;
-        this.loadShopData();
-      }
-    });
-    this.subscriptions.add(sub);
-  }
-
-  private loadShopData(): void {
-    const sub = this.shopService.getShopOwnerByUid(this.currentUserUid).subscribe(shopData => {
-      this.shopOwner = shopData || null;
-      if (shopData) {
-        this.initializeMap(shopData.location.lat, shopData.location.lng);
-      } else {
-        this.getCurrentLocation();
+        this.loadShops();
+        this.loadReservations();
       }
     });
     this.subscriptions.add(sub);
@@ -104,27 +89,37 @@ export class ManageShopPage implements OnInit, OnDestroy {
   private loadShops(): void {
     const sub = this.shopService.getShopsByOwner(this.currentUserUid).subscribe(shops => {
       this.shops = shops;
+      this.checkShopStatus();
     });
     this.subscriptions.add(sub);
   }
 
   private loadReservations(): void {
-    const sub = this.authService.getCurrentUser().subscribe(user => {
-      if (user) {
-        this.reservationService.getReservationsByShop(user.uid).subscribe(reservations => {
-          this.reservations = reservations;
-        });
-      }
+    const sub = this.reservationService.getReservationsByUser(this.currentUserUid).subscribe(reservations => {
+      this.reservations = reservations;
     });
     this.subscriptions.add(sub);
   }
 
-  private async getCurrentLocation(): Promise<void> {
+  private checkShopStatus(): void {
+    const now = new Date();
+    this.shops.forEach(shop => {
+      if (shop.isOpen) {
+        const closingTime = new Date(`${shop.reservationDate}T${shop.closingTime}`);
+        if (now > closingTime) {
+          this.shopService.updateShop(this.currentUserUid, shop.id, { isOpen: false }).subscribe();
+        }
+      }
+    });
+  }
+
+  async getCurrentLocation(): Promise<void> {
     try {
       const location = await this.locationService.getCurrentLocation().toPromise();
       if (location) {
         this.createShopForm.patchValue({
-          location: { lat: location.latitude, lng: location.longitude }
+          latitude: location.latitude,
+          longitude: location.longitude
         });
         this.initializeMap(location.latitude, location.longitude);
       }
@@ -149,7 +144,8 @@ export class ManageShopPage implements OnInit, OnDestroy {
         this.marker.on('dragend', (event: any) => {
           const position = event.target.getLatLng();
           this.createShopForm.patchValue({
-            location: { lat: position.lat, lng: position.lng }
+            latitude: position.lat,
+            longitude: position.lng
           });
         });
       }
@@ -157,16 +153,18 @@ export class ManageShopPage implements OnInit, OnDestroy {
   }
 
   async saveLocation(): Promise<void> {
-    const location = this.createShopForm.value.location;
+    const lat = this.createShopForm.value.latitude;
+    const lng = this.createShopForm.value.longitude;
     if (this.marker) {
-      this.marker.setLatLng([location.lat, location.lng]);
-      this.map.setView([location.lat, location.lng], 15);
+      this.marker.setLatLng([lat, lng]);
+      this.map.setView([lat, lng], 15);
     }
     this.showToast('Location saved successfully!');
   }
 
   async showCreateModal(): Promise<void> {
     this.isCreating = true;
+    this.getCurrentLocation();
   }
 
   async createShop(): Promise<void> {
@@ -182,11 +180,11 @@ export class ManageShopPage implements OnInit, OnDestroy {
     await loading.present();
 
     try {
-      const shopData: ShopOwnerCreate = this.createShopForm.value;
-      await this.shopService.saveShopOwner(shopData, this.currentUserUid).toPromise();
+      const shopData: ShopCreate = this.createShopForm.value;
+      await this.shopService.createShop(shopData, this.currentUserUid).toPromise();
       this.showToast('Shop created successfully!');
       this.isCreating = false;
-      this.loadShopData(); // Reload to show the new shop
+      this.createShopForm.reset();
     } catch (error) {
       console.error('Error creating shop:', error);
       this.showToast('Error creating shop. Please try again.');
@@ -196,14 +194,13 @@ export class ManageShopPage implements OnInit, OnDestroy {
     }
   }
 
-  async updateAvailableSeats(): Promise<void> {
-    if (!this.shopOwner) return;
-    const newSeats = prompt('Enter new available seats:', this.shopOwner.availableSeats.toString());
+  async updateAvailableSeats(shop: Shop): Promise<void> {
+    const newSeats = prompt('Enter new available seats:', shop.availableSeats.toString());
     if (newSeats !== null) {
       const seats = parseInt(newSeats, 10);
-      if (!isNaN(seats) && seats >= 0) {
+      if (!isNaN(seats) && seats >= 0 && seats <= shop.totalSeats) {
         try {
-          await this.shopService.updateShopOwner(this.currentUserUid, { availableSeats: seats }).toPromise();
+          await this.shopService.updateShop(this.currentUserUid, shop.id, { availableSeats: seats }).toPromise();
           this.showToast('Available seats updated!');
         } catch (error) {
           console.error('Error updating seats:', error);
@@ -215,26 +212,29 @@ export class ManageShopPage implements OnInit, OnDestroy {
     }
   }
 
-  async updateReservationDate(): Promise<void> {
-    if (!this.shopOwner) return;
-    const newDate = prompt('Enter new reservation date (YYYY-MM-DD):', this.shopOwner.reservationDate);
-    if (newDate !== null) {
-      try {
-        await this.shopService.updateShopOwner(this.currentUserUid, { reservationDate: newDate }).toPromise();
-        this.showToast('Reservation date updated!');
-      } catch (error) {
-        console.error('Error updating date:', error);
-        this.showToast('Error updating date.');
+  async updateAvailableTables(shop: Shop): Promise<void> {
+    const newTables = prompt('Enter new available tables:', shop.availableTables.toString());
+    if (newTables !== null) {
+      const tables = parseInt(newTables, 10);
+      if (!isNaN(tables) && tables >= 0 && tables <= shop.totalTables) {
+        try {
+          await this.shopService.updateShop(this.currentUserUid, shop.id, { availableTables: tables }).toPromise();
+          this.showToast('Available tables updated!');
+        } catch (error) {
+          console.error('Error updating tables:', error);
+          this.showToast('Error updating tables.');
+        }
+      } else {
+        this.showToast('Invalid number of tables.');
       }
     }
   }
 
-  async updateOpeningTime(): Promise<void> {
-    if (!this.shopOwner) return;
-    const newTime = prompt('Enter new opening time (HH:mm):', this.shopOwner.openingTime);
+  async updateOpeningTime(shop: Shop): Promise<void> {
+    const newTime = prompt('Enter new opening time (HH:mm):', shop.openingTime);
     if (newTime !== null) {
       try {
-        await this.shopService.updateShopOwner(this.currentUserUid, { openingTime: newTime }).toPromise();
+        await this.shopService.updateShop(this.currentUserUid, shop.id, { openingTime: newTime }).toPromise();
         this.showToast('Opening time updated!');
       } catch (error) {
         console.error('Error updating opening time:', error);
@@ -243,17 +243,57 @@ export class ManageShopPage implements OnInit, OnDestroy {
     }
   }
 
-  async updateClosingTime(): Promise<void> {
-    if (!this.shopOwner) return;
-    const newTime = prompt('Enter new closing time (HH:mm):', this.shopOwner.closingTime);
+  async updateClosingTime(shop: Shop): Promise<void> {
+    const newTime = prompt('Enter new closing time (HH:mm):', shop.closingTime);
     if (newTime !== null) {
       try {
-        await this.shopService.updateShopOwner(this.currentUserUid, { closingTime: newTime }).toPromise();
+        await this.shopService.updateShop(this.currentUserUid, shop.id, { closingTime: newTime }).toPromise();
         this.showToast('Closing time updated!');
       } catch (error) {
         console.error('Error updating closing time:', error);
         this.showToast('Error updating closing time.');
       }
+    }
+  }
+
+  async setToNow(shop: Shop | null, field: 'openingTime' | 'closingTime'): Promise<void> {
+    const now = new Date();
+    const timeString = now.toTimeString().slice(0, 5);
+    if (shop) {
+      try {
+        await this.shopService.updateShop(this.currentUserUid, shop.id, { [field]: timeString }).toPromise();
+        this.showToast(`${field === 'openingTime' ? 'Opening' : 'Closing'} time set to now!`);
+      } catch (error) {
+        console.error(`Error updating ${field}:`, error);
+        this.showToast(`Error updating ${field}.`);
+      }
+    } else {
+      // For create form
+      this.createShopForm.patchValue({ [field]: timeString });
+      this.showToast(`${field === 'openingTime' ? 'Opening' : 'Closing'} time set to now!`);
+    }
+  }
+
+  async extendOneHour(shop: Shop): Promise<void> {
+    const closingTime = new Date(`${shop.reservationDate}T${shop.closingTime}`);
+    closingTime.setHours(closingTime.getHours() + 1);
+    const newTime = closingTime.toTimeString().slice(0, 5);
+    try {
+      await this.shopService.updateShop(this.currentUserUid, shop.id, { closingTime: newTime }).toPromise();
+      this.showToast('Closing time extended by 1 hour!');
+    } catch (error) {
+      console.error('Error extending closing time:', error);
+      this.showToast('Error extending closing time.');
+    }
+  }
+
+  async toggleShopStatus(shop: Shop): Promise<void> {
+    try {
+      await this.shopService.updateShop(this.currentUserUid, shop.id, { isOpen: !shop.isOpen }).toPromise();
+      this.showToast(`Shop ${shop.isOpen ? 'closed' : 'opened'}!`);
+    } catch (error) {
+      console.error('Error toggling shop status:', error);
+      this.showToast('Error updating shop status.');
     }
   }
 
@@ -268,16 +308,13 @@ export class ManageShopPage implements OnInit, OnDestroy {
         },
         {
           text: 'Remove',
-          role: 'destructive',
           handler: async () => {
             try {
               await this.shopService.deleteShop(this.currentUserUid, shop.id);
               this.showToast('Shop removed successfully!');
-              // Remove the shop from the local array immediately
-              this.shops = this.shops.filter(s => s.id !== shop.id);
             } catch (error) {
               console.error('Error removing shop:', error);
-              this.showToast('Error removing shop. Please try again.');
+              this.showToast('Error removing shop.');
             }
           }
         }
@@ -286,35 +323,30 @@ export class ManageShopPage implements OnInit, OnDestroy {
     await alert.present();
   }
 
-  async acceptReservation(reservation: Reservation): Promise<void> {
-    const modal = await this.modalCtrl.create({
-      component: 'accept-reservation-modal', // We'll create this component
-      componentProps: {
-        reservation: reservation
-      }
-    });
-
-    modal.onDidDismiss().then(async (result) => {
-      if (result.data) {
-        try {
-          await this.reservationService.acceptReservation(
-            reservation.id,
-            this.currentUserUid,
-            result.data.acceptanceNotes,
-            result.data.tableNumber,
-            result.data.seatNumber,
-            result.data.numberOfSeats
-          );
-          this.showToast('Reservation accepted!');
-          this.loadReservations();
-        } catch (error) {
-          console.error('Error accepting reservation:', error);
-          this.showToast('Error accepting reservation.');
+  async confirmReservation(reservation: Reservation): Promise<void> {
+    const alert = await this.alertCtrl.create({
+      header: 'Accept Reservation',
+      message: `Accept reservation for ${reservation.customerName}?`,
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        },
+        {
+          text: 'Accept',
+          handler: async () => {
+            try {
+              await this.reservationService.updateReservation(reservation.id, { status: 'accepted' }).toPromise();
+              this.showToast('Reservation accepted!');
+            } catch (error) {
+              console.error('Error accepting reservation:', error);
+              this.showToast('Error accepting reservation.');
+            }
+          }
         }
-      }
+      ]
     });
-
-    await modal.present();
+    await alert.present();
   }
 
   async cancelReservation(reservation: Reservation): Promise<void> {
@@ -331,8 +363,15 @@ export class ManageShopPage implements OnInit, OnDestroy {
           handler: async () => {
             try {
               await this.reservationService.updateReservation(reservation.id, { status: 'cancelled' }).toPromise();
+              // Restore seat and table
+              const shop = this.shops.find(s => s.id === reservation.shopId);
+              if (shop) {
+                await this.shopService.updateShop(this.currentUserUid, shop.id, {
+                  availableSeats: shop.availableSeats + 1,
+                  availableTables: shop.availableTables + 1
+                }).toPromise();
+              }
               this.showToast('Reservation cancelled!');
-              this.loadReservations();
             } catch (error) {
               console.error('Error cancelling reservation:', error);
               this.showToast('Error cancelling reservation.');
