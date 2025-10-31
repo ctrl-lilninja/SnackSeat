@@ -83,7 +83,7 @@ snackseat/
 └── .gitignore
 
 ## 👥 **Contributors**
-- **ctrl-lilninja** — Project Owner  
+- **ctrl-lilninja** — Project Owner/Back-end Developer
 - (Add collaborator names here)
 
 ## ⚙️ **Tech Stack**
