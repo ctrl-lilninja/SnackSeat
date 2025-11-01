@@ -91,5 +91,4 @@ snackseat/
 - **Angular**
 - **Firebase (Auth, Firestore, Storage)**
 - **Capacitor GPS / Geolocation**
-
-✅ Now your collaborator can clone, install, and run the project easily!
+- **Leaflet**
