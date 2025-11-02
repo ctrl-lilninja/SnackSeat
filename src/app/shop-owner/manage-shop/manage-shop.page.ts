@@ -271,10 +271,14 @@ export class ManageShopPage implements OnInit, OnDestroy {
           role: 'destructive',
           handler: async () => {
             try {
-              await this.shopService.deleteShop(this.currentUserUid, shop.id);
-              this.showToast('Shop removed successfully!');
-              // Remove the shop from the local array immediately
-              this.shops = this.shops.filter(s => s.id !== shop.id);
+              if (shop.id) {
+                await this.shopService.deleteShop(this.currentUserUid, shop.id);
+                this.showToast('Shop removed successfully!');
+                // Remove the shop from the local array immediately
+                this.shops = this.shops.filter(s => s.id !== shop.id);
+              } else {
+                this.showToast('Shop ID not found.');
+              }
             } catch (error) {
               console.error('Error removing shop:', error);
               this.showToast('Error removing shop. Please try again.');
@@ -287,40 +291,42 @@ export class ManageShopPage implements OnInit, OnDestroy {
   }
 
   async acceptReservation(reservation: Reservation): Promise<void> {
-    const modal = await this.modalCtrl.create({
-      component: 'accept-reservation-modal', // We'll create this component
-      componentProps: {
-        reservation: reservation
-      }
-    });
-
-    modal.onDidDismiss().then(async (result) => {
-      if (result.data) {
-        try {
-          await this.reservationService.acceptReservation(
-            reservation.id,
-            this.currentUserUid,
-            result.data.acceptanceNotes,
-            result.data.tableNumber,
-            result.data.seatNumber,
-            result.data.numberOfSeats
-          );
-          this.showToast('Reservation accepted!');
-          this.loadReservations();
-        } catch (error) {
-          console.error('Error accepting reservation:', error);
-          this.showToast('Error accepting reservation.');
+    const alert = await this.alertCtrl.create({
+      header: 'Accept Reservation',
+      message: `Accept reservation for ${reservation.customerName}? This will assign a seat and table.`,
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        },
+        {
+          text: 'Accept',
+          handler: async () => {
+            try {
+              if (reservation.id) {
+                console.log('Accepting reservation and assigning seat/table...');
+                await this.reservationService.acceptReservation(reservation.id, this.currentUserUid, 'Reservation accepted');
+                console.log('Reservation accepted and seat/table assigned successfully');
+                this.showToast('Reservation accepted and seat/table assigned!');
+                this.loadReservations();
+              } else {
+                this.showToast('Reservation ID not found.');
+              }
+            } catch (error) {
+              console.error('Error accepting reservation:', error);
+              this.showToast('Error accepting reservation.');
+            }
+          }
         }
-      }
+      ]
     });
-
-    await modal.present();
+    await alert.present();
   }
 
   async cancelReservation(reservation: Reservation): Promise<void> {
     const alert = await this.alertCtrl.create({
       header: 'Cancel Reservation',
-      message: `Cancel reservation for ${reservation.customerName}?`,
+      message: `Cancel reservation for ${reservation.customerName || 'customer'}?`,
       buttons: [
         {
           text: 'No',
@@ -330,9 +336,13 @@ export class ManageShopPage implements OnInit, OnDestroy {
           text: 'Yes',
           handler: async () => {
             try {
-              await this.reservationService.updateReservation(reservation.id, { status: 'cancelled' }).toPromise();
-              this.showToast('Reservation cancelled!');
-              this.loadReservations();
+              if (reservation.id) {
+                await this.reservationService.updateReservation(reservation.id, { status: 'cancelled' }).toPromise();
+                this.showToast('Reservation cancelled!');
+                this.loadReservations();
+              } else {
+                this.showToast('Reservation ID not found.');
+              }
             } catch (error) {
               console.error('Error cancelling reservation:', error);
               this.showToast('Error cancelling reservation.');

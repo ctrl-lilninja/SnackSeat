@@ -47,6 +47,16 @@ const routes: Routes = [
     path: 'my-reservations',
     loadChildren: () => import('./customer/my-reservations/my-reservations.module').then( m => m.MyReservationsPageModule)
   },
+  {
+    path: 'profile',
+    loadChildren: () => import('./profile/profile.module').then( m => m.ProfilePageModule)
+  },
+  {
+    path: 'manage-reservations',
+    loadChildren: () => import('./manage-reservations/manage-reservations.module').then( m => m.ManageReservationsPageModule),
+    canActivate: [ShopOwnerGuard]
+  },
+
 
 ];
 

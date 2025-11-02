@@ -1,0 +1,117 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Profile</ion-title>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/"></ion-back-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Profile</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <!-- Loading Spinner -->
+  <ion-card *ngIf="isLoading">
+    <ion-card-content>
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Loading profile...</p>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Profile Form -->
+  <form [formGroup]="profileForm" (ngSubmit)="onUpdateProfile()" *ngIf="!isLoading">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Edit Profile</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <!-- Display Name -->
+        <ion-item>
+          <ion-label position="stacked">Display Name</ion-label>
+          <ion-input
+            formControlName="displayName"
+            placeholder="Enter your display name"
+            [counter]="true"
+            maxlength="50">
+          </ion-input>
+        </ion-item>
+
+        <!-- Email -->
+        <ion-item>
+          <ion-label position="stacked">Email</ion-label>
+          <ion-input
+            formControlName="email"
+            type="email"
+            placeholder="Enter your email"
+            [counter]="true"
+            maxlength="100">
+          </ion-input>
+        </ion-item>
+
+        <!-- Current Password (for password change) -->
+        <ion-item>
+          <ion-label position="stacked">Current Password (required for password change)</ion-label>
+          <ion-input
+            formControlName="currentPassword"
+            type="password"
+            placeholder="Enter current password">
+          </ion-input>
+        </ion-item>
+
+        <!-- New Password -->
+        <ion-item>
+          <ion-label position="stacked">New Password (optional)</ion-label>
+          <ion-input
+            formControlName="newPassword"
+            type="password"
+            placeholder="Enter new password"
+            [counter]="true"
+            maxlength="50">
+          </ion-input>
+        </ion-item>
+
+        <!-- Confirm Password -->
+        <ion-item>
+          <ion-label position="stacked">Confirm New Password</ion-label>
+          <ion-input
+            formControlName="confirmPassword"
+            type="password"
+            placeholder="Confirm new password">
+          </ion-input>
+          <ion-note slot="error" *ngIf="profileForm.hasError('passwordMismatch') && profileForm.get('confirmPassword')?.touched">
+            Passwords do not match
+          </ion-note>
+        </ion-item>
+
+        <!-- Update Profile Button -->
+        <ion-button
+          type="submit"
+          expand="block"
+          [disabled]="profileForm.invalid || isUpdating"
+          style="margin-top: 20px;">
+          <ion-icon name="checkmark-circle-outline" slot="start" *ngIf="!isUpdating"></ion-icon>
+          <ion-spinner name="crescent" slot="start" *ngIf="isUpdating"></ion-spinner>
+          {{ isUpdating ? 'Updating...' : 'Update Profile' }}
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Delete Account Button -->
+    <ion-card>
+      <ion-card-content>
+        <ion-button
+          fill="outline"
+          color="danger"
+          expand="block"
+          (click)="onDeleteAccount()">
+          <ion-icon name="trash-outline" slot="start"></ion-icon>
+          Delete Account
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+  </form>
+</ion-content>

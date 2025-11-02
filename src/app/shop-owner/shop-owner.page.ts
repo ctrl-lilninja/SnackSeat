@@ -8,6 +8,8 @@ import { LocationService } from '../services/location.service';
 import { Shop, ShopCreate } from '../models/shop.model';
 import { Reservation } from '../models/reservation.model';
 import { Subscription } from 'rxjs';
+import { getNextDateForWeekday } from '../utils/getNextDateForWeekday';
+import { DateTime } from 'luxon';
 
 declare let L: any; // Leaflet global
 
@@ -64,12 +66,10 @@ export class ShopOwnerPage implements OnInit, OnDestroy {
       category: ['', Validators.required],
       totalSeats: [1, [Validators.required, Validators.min(1)]],
       totalTables: [1, [Validators.required, Validators.min(1)]],
-      availableSeats: [1, [Validators.required, Validators.min(0)]],
-      availableTables: [1, [Validators.required, Validators.min(0)]],
       openingTime: ['', Validators.required],
       closingTime: ['', Validators.required],
-      reservationDate: ['', Validators.required],
-      isOpen: [true],
+      startDay: ['monday', Validators.required],
+      endDay: ['friday', Validators.required],
       latitude: [0, Validators.required],
       longitude: [0, Validators.required]
     });
@@ -89,7 +89,6 @@ export class ShopOwnerPage implements OnInit, OnDestroy {
   private loadShops(): void {
     const sub = this.shopService.getShopsByOwner(this.currentUserUid).subscribe(shops => {
       this.shops = shops;
-      this.checkShopStatus();
     });
     this.subscriptions.add(sub);
   }
@@ -101,16 +100,14 @@ export class ShopOwnerPage implements OnInit, OnDestroy {
     this.subscriptions.add(sub);
   }
 
-  private checkShopStatus(): void {
+  isShopOpen(shop: Shop): boolean {
     const now = new Date();
-    this.shops.forEach(shop => {
-      if (shop.isOpen) {
-        const closingTime = new Date(`${shop.reservationDate}T${shop.closingTime}`);
-        if (now > closingTime) {
-          this.shopService.updateShop(this.currentUserUid, shop.id, { isOpen: false }).subscribe();
-        }
-      }
-    });
+    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const currentDay = dayNames[now.getDay()];
+    const openDay = shop.openDays[currentDay as keyof typeof shop.openDays];
+    if (!openDay.enabled) return false;
+    const currentTime = now.toTimeString().slice(0, 5); // HH:mm
+    return currentTime >= openDay.open && currentTime <= openDay.close;
   }
 
   async getCurrentLocation(): Promise<void> {
@@ -167,6 +164,14 @@ export class ShopOwnerPage implements OnInit, OnDestroy {
     this.getCurrentLocation();
   }
 
+  private isDayInRange(day: string, startDay: string, endDay: string): boolean {
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    const dayIndex = days.indexOf(day);
+    const startIndex = days.indexOf(startDay);
+    const endIndex = days.indexOf(endDay);
+    return dayIndex >= startIndex && dayIndex <= endIndex;
+  }
+
   async createShop(): Promise<void> {
     if (this.createShopForm.invalid) {
       this.showToast('Please fill in all required fields correctly.');
@@ -180,7 +185,28 @@ export class ShopOwnerPage implements OnInit, OnDestroy {
     await loading.present();
 
     try {
-      const shopData: ShopCreate = this.createShopForm.value;
+      const formValue = this.createShopForm.value;
+      const reservationDate = getNextDateForWeekday(formValue.startDay, formValue.openingTime, 'Asia/Manila').toFormat('yyyy-MM-dd');
+
+      const shopData: ShopCreate = {
+        ...formValue,
+        availableSeats: formValue.totalSeats,
+        availableTables: formValue.totalTables,
+        reservationDate: reservationDate,
+        openDays: {
+          monday: { enabled: this.isDayInRange('monday', formValue.startDay, formValue.endDay), open: formValue.openingTime, close: formValue.closingTime },
+          tuesday: { enabled: this.isDayInRange('tuesday', formValue.startDay, formValue.endDay), open: formValue.openingTime, close: formValue.closingTime },
+          wednesday: { enabled: this.isDayInRange('wednesday', formValue.startDay, formValue.endDay), open: formValue.openingTime, close: formValue.closingTime },
+          thursday: { enabled: this.isDayInRange('thursday', formValue.startDay, formValue.endDay), open: formValue.openingTime, close: formValue.closingTime },
+          friday: { enabled: this.isDayInRange('friday', formValue.startDay, formValue.endDay), open: formValue.openingTime, close: formValue.closingTime },
+          saturday: { enabled: this.isDayInRange('saturday', formValue.startDay, formValue.endDay), open: formValue.openingTime, close: formValue.closingTime },
+          sunday: { enabled: this.isDayInRange('sunday', formValue.startDay, formValue.endDay), open: formValue.openingTime, close: formValue.closingTime }
+        },
+        timezone: 'Asia/Manila',
+        tables: [],
+        address: ''
+      };
+
       await this.shopService.createShop(shopData, this.currentUserUid).toPromise();
       this.showToast('Shop created successfully!');
       this.isCreating = false;
@@ -336,7 +362,7 @@ export class ShopOwnerPage implements OnInit, OnDestroy {
           text: 'Accept',
           handler: async () => {
             try {
-              await this.reservationService.updateReservation(reservation.id, { status: 'accepted' }).toPromise();
+              await this.reservationService.updateReservation(reservation.id!, { status: 'approved' }).toPromise();
               this.showToast('Reservation accepted!');
             } catch (error) {
               console.error('Error accepting reservation:', error);
@@ -362,12 +388,12 @@ export class ShopOwnerPage implements OnInit, OnDestroy {
           text: 'Yes',
           handler: async () => {
             try {
-              await this.reservationService.updateReservation(reservation.id, { status: 'cancelled' }).toPromise();
+              await this.reservationService.updateReservation(reservation.id!, { status: 'cancelled' }).toPromise();
               // Restore seat and table
               const shop = this.shops.find(s => s.id === reservation.shopId);
               if (shop) {
                 await this.shopService.updateShop(this.currentUserUid, shop.id, {
-                  availableSeats: shop.availableSeats + 1,
+                  availableSeats: shop.availableSeats + reservation.seatsRequested,
                   availableTables: shop.availableTables + 1
                 }).toPromise();
               }

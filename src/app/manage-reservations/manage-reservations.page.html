@@ -1,0 +1,127 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Manage Reservations</ion-title>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/shop-owner"></ion-back-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Manage Reservations</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <!-- Loading Spinner -->
+  <ion-card *ngIf="isLoading">
+    <ion-card-content>
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Loading reservations...</p>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Reservations List -->
+  <ion-card *ngIf="!isLoading && reservations.length > 0">
+    <ion-card-header>
+      <ion-card-title>All Reservations</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-list>
+        <ion-item *ngFor="let reservation of reservations" lines="full">
+          <ion-label>
+            <h2>{{ reservation.customerName }}</h2>
+            <p>{{ getShopName(reservation.shopId) }}</p>
+            <p>{{ reservation.seatsRequested }} seats - {{ reservation.reservationDate | date:'medium' }}</p>
+            <p *ngIf="reservation.message">Note: {{ reservation.message }}</p>
+          </ion-label>
+          <ion-badge [color]="getStatusColor(reservation.status)" slot="end">
+            {{ reservation.status | titlecase }}
+          </ion-badge>
+          <ion-button
+            *ngIf="reservation.status === 'pending'"
+            fill="clear"
+            color="success"
+            slot="end"
+            (click)="onAcceptReservation(reservation)">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+          </ion-button>
+          <ion-button
+            *ngIf="reservation.status === 'pending'"
+            fill="clear"
+            color="danger"
+            slot="end"
+            (click)="onRejectReservation(reservation)">
+            <ion-icon name="close-circle-outline"></ion-icon>
+          </ion-button>
+        </ion-item>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- No Reservations Message -->
+  <ion-card *ngIf="!isLoading && reservations.length === 0">
+    <ion-card-content>
+      <ion-text color="medium">
+        <p>No reservations found for your shops.</p>
+      </ion-text>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Seat/Table Assignment Modal -->
+  <ion-modal [isOpen]="showSeatTableForm" (willDismiss)="onCancelSeatTableAssignment()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Assign Seat & Table</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="onCancelSeatTableAssignment()">Close</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content>
+        <form [formGroup]="seatTableForm" (ngSubmit)="onAssignSeatTable()">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Assign Seat and Table</ion-card-title>
+              <ion-card-subtitle *ngIf="selectedReservation">
+                For {{ selectedReservation.customerName }} - {{ selectedReservation.seatsRequested }} seats
+              </ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-item>
+                <ion-label position="stacked">Table Number</ion-label>
+                <ion-input
+                  formControlName="tableNumber"
+                  type="number"
+                  placeholder="Enter table number"
+                  min="1">
+                </ion-input>
+              </ion-item>
+
+              <ion-item>
+                <ion-label position="stacked">Seat Number</ion-label>
+                <ion-input
+                  formControlName="seatNumber"
+                  type="number"
+                  placeholder="Enter seat number"
+                  min="1">
+                </ion-input>
+              </ion-item>
+
+              <ion-button
+                type="submit"
+                expand="block"
+                [disabled]="seatTableForm.invalid"
+                style="margin-top: 20px;">
+                <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+                Assign Seat & Table
+              </ion-button>
+            </ion-card-content>
+          </ion-card>
+        </form>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+</ion-content>

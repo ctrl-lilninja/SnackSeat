@@ -4,7 +4,9 @@ import { ToastController, AlertController, RefresherCustomEvent } from '@ionic/a
 import { Subscription } from 'rxjs';
 import { ReservationService } from '../../services/reservation.service';
 import { AuthService } from '../../services/auth.service';
+import { ShopService } from '../../services/shop.service';
 import { Reservation } from '../../models/reservation.model';
+import { Shop } from '../../models/shop.model';
 
 @Component({
   selector: 'app-my-reservations',
@@ -14,12 +16,14 @@ import { Reservation } from '../../models/reservation.model';
 })
 export class MyReservationsPage implements OnInit, OnDestroy {
   reservations: Reservation[] = [];
+  shops: any[] = [];
   isLoading = true;
   private subscriptions: Subscription[] = [];
 
   constructor(
     private reservationService: ReservationService,
     private authService: AuthService,
+    private shopService: ShopService,
     private router: Router,
     private toastController: ToastController,
     private alertController: AlertController
@@ -27,6 +31,7 @@ export class MyReservationsPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadReservations();
+    this.loadShops();
   }
 
   ngOnDestroy(): void {
@@ -34,32 +39,40 @@ export class MyReservationsPage implements OnInit, OnDestroy {
   }
 
   loadReservations(): void {
+    console.log('MyReservationsPage: Starting loadReservations');
     this.isLoading = true;
     const currentUser = this.authService.getCurrentUser();
+    console.log('MyReservationsPage: Got currentUser observable:', currentUser);
 
     const userSub = currentUser.subscribe({
       next: (user) => {
+        console.log('MyReservationsPage: Auth state changed, user:', user ? `UID: ${user.uid}, Email: ${user.email}` : 'null');
         if (user) {
+          console.log('MyReservationsPage: User authenticated, fetching reservations for user:', user.uid);
           const reservationsSub = this.reservationService.getReservationsByUser(user.uid).subscribe({
             next: (reservations) => {
+              console.log('MyReservationsPage: Reservations received:', reservations.length, 'reservations');
               this.reservations = reservations.sort((a, b) =>
                 new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
               );
               this.isLoading = false;
+              console.log('MyReservationsPage: Reservations loaded successfully, isLoading set to false');
             },
             error: (error) => {
-              console.error('Error loading reservations:', error);
+              console.error('MyReservationsPage: Error loading reservations:', error);
               this.showToast('Error loading reservations');
               this.isLoading = false;
             }
           });
           this.subscriptions.push(reservationsSub);
         } else {
+          console.log('MyReservationsPage: No authenticated user found, skipping reservation load');
+          this.reservations = [];
           this.isLoading = false;
         }
       },
       error: (error) => {
-        console.error('Error getting current user:', error);
+        console.error('MyReservationsPage: Error getting current user:', error);
         this.isLoading = false;
       }
     });
@@ -101,9 +114,13 @@ export class MyReservationsPage implements OnInit, OnDestroy {
           role: 'destructive',
           handler: async () => {
             try {
-              await this.reservationService.cancelReservation(reservation.id).toPromise();
-              this.showToast('Reservation cancelled successfully');
-              this.loadReservations(); // Refresh the list
+              if (reservation.id) {
+                await this.reservationService.cancelReservation(reservation.id).toPromise();
+                this.showToast('Reservation cancelled successfully');
+                this.loadReservations(); // Refresh the list
+              } else {
+                this.showToast('Reservation ID not found');
+              }
             } catch (error) {
               console.error('Error cancelling reservation:', error);
               this.showToast('Error cancelling reservation');
@@ -122,6 +139,23 @@ export class MyReservationsPage implements OnInit, OnDestroy {
     } else {
       this.showToast('Contact number not available');
     }
+  }
+
+  loadShops(): void {
+    const shopsSub = this.shopService.getAllShops().subscribe({
+      next: (shops) => {
+        this.shops = shops;
+      },
+      error: (error) => {
+        console.error('Error loading shops:', error);
+      }
+    });
+    this.subscriptions.push(shopsSub);
+  }
+
+  getShopName(shopId: string): string {
+    const shop = this.shops.find(s => s.id === shopId);
+    return shop ? shop.name : 'Shop';
   }
 
   private async showToast(message: string): Promise<void> {

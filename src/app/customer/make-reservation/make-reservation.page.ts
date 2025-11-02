@@ -46,7 +46,27 @@ export class MakeReservationPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.initializeForm();
-    this.loadShopDetails();
+    // Subscribe to auth state and only load shop details if user is authenticated
+    console.log('MakeReservationPage: Subscribing to auth state...');
+    const authSub = this.authService.getCurrentUser().subscribe({
+      next: (user) => {
+        console.log('MakeReservationPage: Auth state changed, user:', user ? user.uid : 'null');
+        if (user) {
+          console.log('MakeReservationPage: User authenticated, loading shop details...');
+          this.loadShopDetails();
+        } else {
+          console.log('MakeReservationPage: No authenticated user, skipping shop details load');
+          this.errorMessage = 'Please log in to make a reservation';
+          this.isLoading = false;
+        }
+      },
+      error: (error) => {
+        console.error('MakeReservationPage: Error getting auth state:', error);
+        this.errorMessage = 'Authentication error';
+        this.isLoading = false;
+      }
+    });
+    this.subscriptions.push(authSub);
   }
 
   ngOnDestroy(): void {
@@ -55,9 +75,9 @@ export class MakeReservationPage implements OnInit, OnDestroy {
 
   private initializeForm(): void {
     this.reservationForm = this.formBuilder.group({
-      date: ['', Validators.required],
-      time: ['', [Validators.required, this.timeWithinShopHoursValidator.bind(this)]],
-      numberOfSeats: [1, [Validators.required, Validators.min(1)]],
+      datetime: ['', [Validators.required, this.datetimeWithinShopHoursValidator.bind(this)]],
+      numberOfPersons: [1, [Validators.required, Validators.min(1)]],
+      numberOfTables: [1, [Validators.required, Validators.min(1)]],
       specialRequests: ['']
     });
   }
@@ -77,13 +97,20 @@ export class MakeReservationPage implements OnInit, OnDestroy {
         next: (shop) => {
           if (shop) {
             this.shop = shop;
-            // Update max seats validator based on available seats
-            this.reservationForm.get('numberOfSeats')?.setValidators([
+            // Update max persons validator based on available seats
+            this.reservationForm.get('numberOfPersons')?.setValidators([
               Validators.required,
               Validators.min(1),
               Validators.max(shop.availableSeats)
             ]);
-            this.reservationForm.get('numberOfSeats')?.updateValueAndValidity();
+            this.reservationForm.get('numberOfPersons')?.updateValueAndValidity();
+            // Update max tables validator based on available tables
+            this.reservationForm.get('numberOfTables')?.setValidators([
+              Validators.required,
+              Validators.min(1),
+              Validators.max(shop.availableTables)
+            ]);
+            this.reservationForm.get('numberOfTables')?.updateValueAndValidity();
           } else {
             this.errorMessage = 'Shop not found';
           }
@@ -106,6 +133,7 @@ export class MakeReservationPage implements OnInit, OnDestroy {
 
   async onSubmit(): Promise<void> {
     if (this.reservationForm.invalid || !this.shop) {
+      this.errorMessage = 'Please fill in all required fields correctly.';
       return;
     }
 
@@ -113,42 +141,56 @@ export class MakeReservationPage implements OnInit, OnDestroy {
     this.errorMessage = '';
 
     try {
+      console.log('Starting reservation creation...');
       const formValue = this.reservationForm.value;
+      console.log('Form value:', formValue);
+
       const currentUser = await this.authService.getCurrentUser().toPromise();
+      console.log('Current user:', currentUser);
 
       if (!currentUser) {
-        throw new Error('User not authenticated');
+        throw new Error('User not authenticated. Please log in again.');
       }
 
-      // Auto-assign seat and table numbers
-      const { seatNumber, tableNumber } = await this.autoAssignSeatAndTable(this.shop, formValue.numberOfSeats);
+      // Parse datetime value
+      const selectedDateTime = new Date(formValue.datetime);
+      const date = selectedDateTime.toISOString().split('T')[0];
+      const time = selectedDateTime.toTimeString().split(' ')[0].substring(0, 5); // HH:MM format
+      console.log('Parsed date and time:', date, time);
+
+      // Seat and table assignment will happen only after shop owner accepts the reservation
+      console.log('Creating reservation without seat/table assignment - will be assigned upon acceptance');
 
       const reservationData: ReservationCreate = {
-        shopId: this.shop.id,
+        shopId: this.shop.id!,
         shopName: this.shop.name,
-        date: new Date(formValue.date),
-        time: formValue.time,
-        numberOfSeats: formValue.numberOfSeats,
-        tableNumber: tableNumber,
-        seatNumber: seatNumber,
+        weekday: this.getWeekdayFromDate(date),
+        date: new Date(date),
+        time: time,
+        tableNumber: null, // Will be assigned later
+        seatsRequested: formValue.numberOfPersons,
+        numberOfTables: formValue.numberOfTables,
         specialRequests: formValue.specialRequests
       };
+      console.log('Reservation data:', reservationData);
 
       // Create reservation using the updated async method
+      console.log('Calling reservation service...');
       const reservationId = await this.reservationService.createReservation(
         reservationData,
         currentUser.uid,
         currentUser.displayName || 'Customer',
         currentUser.email || '',
-        this.shop!.phone
+        this.shop.phone || ''
       );
+      console.log('Reservation created with ID:', reservationId);
 
       await this.showSuccessToast('Reservation created successfully!');
       this.router.navigate(['/customer/browse-shops']);
 
     } catch (error: any) {
       console.error('Error creating reservation:', error);
-      this.errorMessage = error.message || 'Error creating reservation';
+      this.errorMessage = error.message || 'An unexpected error occurred while creating the reservation. Please try again.';
       await this.showErrorToast(this.errorMessage);
     } finally {
       this.isSubmitting = false;
@@ -158,10 +200,18 @@ export class MakeReservationPage implements OnInit, OnDestroy {
   private async autoAssignSeatAndTable(shop: Shop, numberOfSeats: number): Promise<{ seatNumber: number, tableNumber: number }> {
     // Simple auto-assignment logic - in a real app, this would be more sophisticated
     // For now, assign to the first available table/seat combination
-    const seatNumber = Math.floor(Math.random() * shop.availableSeats) + 1;
-    const tableNumber = Math.floor(Math.random() * shop.availableTables) + 1;
+    const availableSeats = shop.availableSeats ?? 0;
+    const availableTables = shop.availableTables ?? 0;
+    const seatNumber = Math.floor(Math.random() * availableSeats) + 1;
+    const tableNumber = Math.floor(Math.random() * availableTables) + 1;
 
     return { seatNumber, tableNumber };
+  }
+
+  private getWeekdayFromDate(dateString: string): string {
+    const date = new Date(dateString);
+    const weekdays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    return weekdays[date.getDay()];
   }
 
   private async createReservationWithAtomicUpdate(
@@ -176,7 +226,7 @@ export class MakeReservationPage implements OnInit, OnDestroy {
       userId,
       customerName,
       customerEmail,
-      this.shop!.phone // Using shop phone as contact number
+      this.shop!.phone || '' // Using shop phone as contact number
     );
   }
 
@@ -200,17 +250,24 @@ export class MakeReservationPage implements OnInit, OnDestroy {
     await toast.present();
   }
 
-  private timeWithinShopHoursValidator(control: any): { [key: string]: any } | null {
+  private datetimeWithinShopHoursValidator(control: any): { [key: string]: any } | null {
     if (!this.shop || !control.value) {
       return null;
     }
 
-    const selectedTime = control.value;
+    const selectedDateTime = new Date(control.value);
+    const selectedTime = selectedDateTime.toTimeString().split(' ')[0].substring(0, 5); // HH:MM format
     const openingTime = this.shop.openingTime;
     const closingTime = this.shop.closingTime;
 
     if (selectedTime < openingTime || selectedTime > closingTime) {
       return { timeOutsideHours: true };
+    }
+
+    // Check if shop is open on the selected date and time using ShopService
+    const shopStatus = this.shopService.getShopStatus(this.shop);
+    if (!shopStatus.isOpen) {
+      return { shopClosed: true };
     }
 
     return null;
