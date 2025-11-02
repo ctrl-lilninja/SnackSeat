@@ -24,7 +24,8 @@
       <ion-card-title>{{ shop.name }}</ion-card-title>
       <ion-card-subtitle>{{ shop.category }}</ion-card-subtitle>
       <ion-button fill="clear" color="danger" slot="end" (click)="removeShop(shop)">
-        <ion-icon name="trash" slot="icon-only"></ion-icon>
+        <ion-icon name="trash" slot="start"></ion-icon>
+        Delete
       </ion-button>
     </ion-card-header>
     <ion-card-content>
@@ -63,10 +64,7 @@
         </ion-button>
       </p>
       <p><strong>Reservation Date:</strong> {{ shop.reservationDate }}</p>
-      <p><strong>Status:</strong>
-        <ion-toggle [checked]="shop.isOpen" (ionChange)="toggleShopStatus(shop)" slot="end"></ion-toggle>
-        {{ shop.isOpen ? 'Open' : 'Closed' }}
-      </p>
+      <p><strong>Status:</strong> {{ isShopOpen(shop) ? 'Open' : 'Closed' }}</p>
     </ion-card-content>
   </ion-card>
 
@@ -137,18 +135,8 @@
               </ion-item>
 
               <ion-item>
-                <ion-label position="stacked">Available Seats *</ion-label>
-                <ion-input formControlName="availableSeats" type="number" min="0"></ion-input>
-              </ion-item>
-
-              <ion-item>
-                <ion-label position="stacked">Available Tables *</ion-label>
-                <ion-input formControlName="availableTables" type="number" min="0"></ion-input>
-              </ion-item>
-
-              <ion-item>
                 <ion-label position="stacked">Opening Time *</ion-label>
-                <ion-datetime formControlName="openingTime" display-format="HH:mm" picker-format="HH:mm" placeholder="Select opening time"></ion-datetime>
+                <ion-input formControlName="openingTime" type="time" placeholder="Select opening time"></ion-input>
                 <ion-button fill="clear" slot="end" (click)="setToNow(null, 'openingTime')">
                   <ion-icon name="time" slot="icon-only"></ion-icon>
                 </ion-button>
@@ -156,21 +144,39 @@
 
               <ion-item>
                 <ion-label position="stacked">Closing Time *</ion-label>
-                <ion-datetime formControlName="closingTime" display-format="HH:mm" picker-format="HH:mm" placeholder="Select closing time"></ion-datetime>
+                <ion-input formControlName="closingTime" type="time" placeholder="Select closing time"></ion-input>
                 <ion-button fill="clear" slot="end" (click)="setToNow(null, 'closingTime')">
                   <ion-icon name="time" slot="icon-only"></ion-icon>
                 </ion-button>
               </ion-item>
 
               <ion-item>
-                <ion-label position="stacked">Reservation Date *</ion-label>
-                <ion-datetime formControlName="reservationDate" display-format="YYYY-MM-DD" picker-format="YYYY-MM-DD" placeholder="Select date"></ion-datetime>
+                <ion-label position="stacked">Start Day *</ion-label>
+                <ion-select formControlName="startDay" placeholder="Select start day">
+                  <ion-select-option value="monday">Monday</ion-select-option>
+                  <ion-select-option value="tuesday">Tuesday</ion-select-option>
+                  <ion-select-option value="wednesday">Wednesday</ion-select-option>
+                  <ion-select-option value="thursday">Thursday</ion-select-option>
+                  <ion-select-option value="friday">Friday</ion-select-option>
+                  <ion-select-option value="saturday">Saturday</ion-select-option>
+                  <ion-select-option value="sunday">Sunday</ion-select-option>
+                </ion-select>
               </ion-item>
 
               <ion-item>
-                <ion-label>Shop Status</ion-label>
-                <ion-toggle formControlName="isOpen" slot="end"></ion-toggle>
+                <ion-label position="stacked">End Day *</ion-label>
+                <ion-select formControlName="endDay" placeholder="Select end day">
+                  <ion-select-option value="monday">Monday</ion-select-option>
+                  <ion-select-option value="tuesday">Tuesday</ion-select-option>
+                  <ion-select-option value="wednesday">Wednesday</ion-select-option>
+                  <ion-select-option value="thursday">Thursday</ion-select-option>
+                  <ion-select-option value="friday">Friday</ion-select-option>
+                  <ion-select-option value="saturday">Saturday</ion-select-option>
+                  <ion-select-option value="sunday">Sunday</ion-select-option>
+                </ion-select>
               </ion-item>
+
+
             </ion-card-content>
           </ion-card>
 
@@ -218,8 +224,8 @@
           <ion-item slot="header">
             <ion-label>
               <h2>{{reservation.customerName}}</h2>
-              <p>{{reservation.reservationDate}} at {{reservation.reservationTime}}</p>
-              <p>Table: {{reservation.tableNumber}} | Seat: {{reservation.seatNumber}} | Status: {{reservation.status}}</p>
+              <p>{{reservation.reservationDate}} on {{reservation.weekday}}</p>
+              <p>Table: {{reservation.tableNumber}} | Seats: {{reservation.seatsRequested}} | Status: {{reservation.status}}</p>
             </ion-label>
           </ion-item>
           <div slot="content">
@@ -227,7 +233,8 @@
               <ion-label>
                 <p><strong>Email:</strong> {{reservation.customerEmail}}</p>
                 <p><strong>Phone:</strong> {{reservation.contactNumber}}</p>
-                <p><strong>Seats:</strong> {{reservation.numberOfSeats}}</p>
+                <p><strong>Seats:</strong> {{reservation.seatsRequested}}</p>
+                <p *ngIf="reservation.message"><strong>Message:</strong> {{reservation.message}}</p>
               </ion-label>
             </ion-item>
             <ion-button

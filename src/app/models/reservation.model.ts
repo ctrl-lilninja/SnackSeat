@@ -1,39 +1,35 @@
 export interface Reservation {
   id: string;
-  userId: string;
   shopId: string;
-  shopName?: string;
+  customerId: string;
   customerName: string;
   customerEmail: string;
   contactNumber: string;
-  numberOfSeats: number;
-  tableNumber: number;
-  seatNumber: number;
-  reservationDate: string;
-  reservationTime: string;
-  status: 'pending' | 'accepted' | 'cancelled' | 'completed';
-  specialRequests?: string;
-  createdAt: any; // Timestamp
-  acceptedAt?: any; // Timestamp when accepted
-  confirmedBy?: string; // Shop owner UID who accepted
-  acceptanceNotes?: string; // Feedback details like table/seats confirmation
+  tableNumber: number | null;
+  seatNumber: number | null;
+  seatsRequested: number;
+  message?: string;
+  weekday: string;
+  reservationDate: string; // ISO format
+  status: 'pending' | 'approved' | 'confirmed' | 'rejected' | 'done' | 'cancelled';
+  createdAt: any;
+  createdBy: string;
+  archived: boolean;
 }
 
 export interface ReservationCreate {
   shopId: string;
   shopName?: string;
+  weekday: string;
   date: Date;
   time: string;
-  numberOfSeats: number;
-  tableNumber: number;
-  seatNumber: number;
+  tableNumber: number | null;
+  seatsRequested: number;
+  numberOfTables: number;
   specialRequests?: string;
 }
 
 export interface ReservationUpdate {
-  status?: 'pending' | 'accepted' | 'cancelled' | 'completed';
-  specialRequests?: string;
-  acceptedAt?: any;
-  confirmedBy?: string;
-  acceptanceNotes?: string;
+  status?: 'pending' | 'approved' | 'confirmed' | 'rejected' | 'done' | 'cancelled';
+  archived?: boolean;
 }

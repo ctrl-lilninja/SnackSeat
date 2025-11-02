@@ -33,6 +33,11 @@
           <ion-spinner *ngIf="isLoading" slot="start" name="crescent"></ion-spinner>
           {{ isLoading ? 'Signing In...' : 'Sign In' }}
         </ion-button>
+
+        <ion-button expand="block" fill="outline" (click)="loginWithGoogle()" [disabled]="isLoading">
+          <ion-icon name="logo-google" slot="start"></ion-icon>
+          Sign In with Google
+        </ion-button>
       </form>
 
       <ion-button fill="clear" expand="block" routerLink="/auth/signup">

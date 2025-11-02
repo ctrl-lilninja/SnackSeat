@@ -13,7 +13,16 @@ export const environment = {
     messagingSenderId: "423929753409",
     appId: "1:423929753409:web:5957a1c0ba8443ff3f3bc0",
     measurementId: "G-E76LLXNNWH"
-  }
+  },
+  // Add localhost URLs for development
+  authorizedDomains: [
+    'localhost',
+    '127.0.0.1',
+    'http://localhost:8100',
+    'http://localhost:8107',
+    'http://localhost:8108',
+    'https://snackseat-eb677.firebaseapp.com'
+  ]
 };
 
 /*

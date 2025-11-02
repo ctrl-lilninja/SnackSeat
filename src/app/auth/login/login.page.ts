@@ -71,6 +71,28 @@ export class LoginPage implements OnInit {
     }
   }
 
+  async loginWithGoogle() {
+    this.isLoading = true;
+    try {
+      const user = await this.authService.loginWithGoogle().toPromise();
+      if (user) {
+        const profile = await this.authService.getUserProfile(user.uid).toPromise();
+        if (profile) {
+          this.isLoading = false;
+          await this.showToast('Google login successful!');
+          this.navigateBasedOnRole(profile.role);
+        } else {
+          this.isLoading = false;
+          await this.showToast('User profile not found');
+        }
+      }
+    } catch (error) {
+      this.isLoading = false;
+      console.error('Google login error:', error);
+      await this.showToast('Google login failed. Please try again.');
+    }
+  }
+
   private async showToast(message: string) {
     const toast = await this.toastController.create({
       message: message,

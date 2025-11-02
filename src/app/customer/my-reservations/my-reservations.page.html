@@ -42,7 +42,7 @@
   <!-- Reservations List -->
   <ion-card *ngFor="let reservation of reservations" class="reservation-card">
     <ion-card-header>
-      <ion-card-title>{{ reservation.shopName || 'Shop' }}</ion-card-title>
+      <ion-card-title>{{ getShopName(reservation.shopId) || 'Shop' }}</ion-card-title>
       <ion-card-subtitle>
         <ion-badge [color]="getStatusColor(reservation.status)">
           {{ reservation.status | titlecase }}
@@ -57,23 +57,29 @@
           <p>{{ reservation.reservationDate }}</p>
         </ion-col>
         <ion-col size="6">
-          <p><strong>Time:</strong></p>
-          <p>{{ reservation.reservationTime }}</p>
+          <p><strong>Weekday:</strong></p>
+          <p>{{ reservation.weekday | titlecase }}</p>
         </ion-col>
       </ion-row>
 
       <ion-row>
         <ion-col size="6">
-          <p><strong>Seats:</strong> {{ reservation.numberOfSeats }}</p>
+          <p><strong>Seats:</strong> {{ reservation.seatsRequested }}</p>
         </ion-col>
         <ion-col size="6">
-          <p><strong>Table:</strong> {{ reservation.tableNumber }}</p>
+          <p><strong>Table:</strong> {{ reservation.tableNumber || 'Not assigned yet' }}</p>
         </ion-col>
       </ion-row>
 
-      <ion-row>
-        <ion-col size="6">
+      <ion-row *ngIf="reservation.seatNumber">
+        <ion-col size="12">
           <p><strong>Seat:</strong> {{ reservation.seatNumber }}</p>
+        </ion-col>
+      </ion-row>
+
+      <ion-row>
+        <ion-col size="6">
+          <p><strong>Status:</strong> {{ reservation.status | titlecase }}</p>
         </ion-col>
         <ion-col size="6">
           <p><strong>Contact:</strong></p>
@@ -81,16 +87,10 @@
         </ion-col>
       </ion-row>
 
-      <p *ngIf="reservation.specialRequests"><strong>Special Requests:</strong> {{ reservation.specialRequests }}</p>
-
-      <!-- Acceptance Details for Accepted Reservations -->
-      <div *ngIf="reservation.status === 'accepted'">
-        <p><strong>Accepted At:</strong> {{ reservation.acceptedAt?.toDate() | date:'short' }}</p>
-        <p><strong>Acceptance Notes:</strong> {{ reservation.acceptanceNotes || 'No additional notes' }}</p>
-      </div>
+      <p *ngIf="reservation.message"><strong>Special Requests:</strong> {{ reservation.message }}</p>
 
       <!-- Action Buttons -->
-      <ion-row *ngIf="reservation.status === 'pending' || reservation.status === 'accepted'">
+      <ion-row *ngIf="reservation.status === 'pending' || reservation.status === 'approved'">
         <ion-col size="6">
           <ion-button fill="outline" color="danger" (click)="cancelReservation(reservation)" size="small">
             <ion-icon name="close-circle-outline" slot="start"></ion-icon>

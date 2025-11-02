@@ -56,41 +56,46 @@
         <ion-card-title>Reservation Details</ion-card-title>
       </ion-card-header>
       <ion-card-content>
-        <!-- Date Selection -->
+        <!-- Date and Time Selection -->
         <ion-item>
-          <ion-label position="stacked">Reservation Date</ion-label>
+          <ion-label position="stacked">Reservation Date & Time</ion-label>
           <ion-datetime
-            formControlName="date"
+            formControlName="datetime"
             [min]="minDate"
             [max]="maxDate"
-            displayFormat="MMM DD, YYYY"
-            placeholder="Select date">
+            displayFormat="MMM DD, YYYY HH:mm"
+            pickerFormat="MMM DD YYYY HH:mm"
+            placeholder="Select date and time">
           </ion-datetime>
-        </ion-item>
-
-        <!-- Time Selection -->
-        <ion-item>
-          <ion-label position="stacked">Reservation Time</ion-label>
-          <ion-datetime
-            formControlName="time"
-            displayFormat="HH:mm"
-            pickerFormat="HH:mm"
-            placeholder="Select time">
-          </ion-datetime>
-          <ion-note slot="error" *ngIf="reservationForm.get('time')?.hasError('timeOutsideHours') && reservationForm.get('time')?.touched">
-            Time must be within shop hours ({{ shop?.openingTime }} - {{ shop?.closingTime }})
+          <ion-note slot="error" *ngIf="reservationForm.get('datetime')?.hasError('timeOutsideHours') && reservationForm.get('datetime')?.touched">
+            Time must be within shop hours ({{ shop.openingTime }} - {{ shop.closingTime }})
+          </ion-note>
+          <ion-note slot="error" *ngIf="reservationForm.get('datetime')?.hasError('shopClosed') && reservationForm.get('datetime')?.touched">
+            Shop is closed on the selected date and time
           </ion-note>
         </ion-item>
 
-        <!-- Number of Seats -->
+        <!-- Number of Persons -->
         <ion-item>
-          <ion-label position="stacked">Number of Seats</ion-label>
+          <ion-label position="stacked">Number of Persons</ion-label>
           <ion-input
             type="number"
-            formControlName="numberOfSeats"
-            placeholder="Enter number of seats"
+            formControlName="numberOfPersons"
+            placeholder="Enter number of persons"
             min="1"
-            [max]="shop.availableSeats">
+            [max]="shop.availableSeats || 0">
+          </ion-input>
+        </ion-item>
+
+        <!-- Number of Tables -->
+        <ion-item>
+          <ion-label position="stacked">Number of Tables</ion-label>
+          <ion-input
+            type="number"
+            formControlName="numberOfTables"
+            placeholder="Enter number of tables"
+            min="1"
+            [max]="shop.availableTables || 0">
           </ion-input>
         </ion-item>
 

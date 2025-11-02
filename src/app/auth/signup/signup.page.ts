@@ -12,6 +12,7 @@ import { firstValueFrom } from 'rxjs';
 })
 export class SignupPage implements OnInit {
   signupData = {
+    username: '',
     displayName: '',
     email: '',
     password: '',
@@ -31,7 +32,7 @@ export class SignupPage implements OnInit {
   }
 
   async onSignup() {
-    if (!this.signupData.displayName || !this.signupData.email ||
+    if (!this.signupData.username || !this.signupData.displayName || !this.signupData.email ||
         !this.signupData.password || !this.signupData.confirmPassword || !this.signupData.role) {
       this.showToast('Please fill in all fields');
       return;
@@ -54,12 +55,14 @@ export class SignupPage implements OnInit {
         this.signupData.email,
         this.signupData.password,
         this.signupData.displayName,
-        this.signupData.role
+        this.signupData.role,
+        this.signupData.username
       ));
       this.isLoading = false;
       await this.showToast('Account created successfully!');
       // Clear the form
       this.signupData = {
+        username: '',
         displayName: '',
         email: '',
         password: '',
