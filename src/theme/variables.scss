@@ -1,2 +1,328 @@
-// For information on how to create your own theme, please see:
+// Ionic Variables and Theming. For more info, please see:
 // http://ionicframework.com/docs/theming/
+
+/** SnackSeat Custom Theme **/
+
+// Import Google Fonts
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  // ============================================
+  // BRAND COLORS
+  // ============================================
+  --snackseat-primary: #FF6B35;
+  --snackseat-primary-rgb: 255, 107, 53;
+  --snackseat-primary-contrast: #ffffff;
+  --snackseat-primary-contrast-rgb: 255, 255, 255;
+  --snackseat-primary-shade: #e05e2f;
+  --snackseat-primary-tint: #ff7a49;
+
+  --snackseat-secondary: #004E89;
+  --snackseat-secondary-rgb: 0, 78, 137;
+  --snackseat-secondary-contrast: #ffffff;
+  --snackseat-secondary-contrast-rgb: 255, 255, 255;
+  --snackseat-secondary-shade: #004479;
+  --snackseat-secondary-tint: #1a6095;
+
+  --snackseat-tertiary: #F7B801;
+  --snackseat-tertiary-rgb: 247, 184, 1;
+  --snackseat-tertiary-contrast: #000000;
+  --snackseat-tertiary-contrast-rgb: 0, 0, 0;
+  --snackseat-tertiary-shade: #d9a201;
+  --snackseat-tertiary-tint: #f8bf1a;
+
+  --snackseat-success: #1DB954;
+  --snackseat-success-rgb: 29, 185, 84;
+  --snackseat-success-contrast: #ffffff;
+  --snackseat-success-contrast-rgb: 255, 255, 255;
+  --snackseat-success-shade: #1aa34a;
+  --snackseat-success-tint: #34c065;
+
+  --snackseat-warning: #FFA500;
+  --snackseat-warning-rgb: 255, 165, 0;
+  --snackseat-warning-contrast: #000000;
+  --snackseat-warning-contrast-rgb: 0, 0, 0;
+  --snackseat-warning-shade: #e09100;
+  --snackseat-warning-tint: #ffae1a;
+
+  --snackseat-danger: #E63946;
+  --snackseat-danger-rgb: 230, 57, 70;
+  --snackseat-danger-contrast: #ffffff;
+  --snackseat-danger-contrast-rgb: 255, 255, 255;
+  --snackseat-danger-shade: #ca323d;
+  --snackseat-danger-tint: #e94d59;
+
+  // ============================================
+  // IONIC COLOR OVERRIDES
+  // ============================================
+  --ion-color-primary: var(--snackseat-primary);
+  --ion-color-primary-rgb: var(--snackseat-primary-rgb);
+  --ion-color-primary-contrast: var(--snackseat-primary-contrast);
+  --ion-color-primary-contrast-rgb: var(--snackseat-primary-contrast-rgb);
+  --ion-color-primary-shade: var(--snackseat-primary-shade);
+  --ion-color-primary-tint: var(--snackseat-primary-tint);
+
+  --ion-color-secondary: var(--snackseat-secondary);
+  --ion-color-secondary-rgb: var(--snackseat-secondary-rgb);
+  --ion-color-secondary-contrast: var(--snackseat-secondary-contrast);
+  --ion-color-secondary-contrast-rgb: var(--snackseat-secondary-contrast-rgb);
+  --ion-color-secondary-shade: var(--snackseat-secondary-shade);
+  --ion-color-secondary-tint: var(--snackseat-secondary-tint);
+
+  --ion-color-tertiary: var(--snackseat-tertiary);
+  --ion-color-tertiary-rgb: var(--snackseat-tertiary-rgb);
+  --ion-color-tertiary-contrast: var(--snackseat-tertiary-contrast);
+  --ion-color-tertiary-contrast-rgb: var(--snackseat-tertiary-contrast-rgb);
+  --ion-color-tertiary-shade: var(--snackseat-tertiary-shade);
+  --ion-color-tertiary-tint: var(--snackseat-tertiary-tint);
+
+  --ion-color-success: var(--snackseat-success);
+  --ion-color-success-rgb: var(--snackseat-success-rgb);
+  --ion-color-success-contrast: var(--snackseat-success-contrast);
+  --ion-color-success-contrast-rgb: var(--snackseat-success-contrast-rgb);
+  --ion-color-success-shade: var(--snackseat-success-shade);
+  --ion-color-success-tint: var(--snackseat-success-tint);
+
+  --ion-color-warning: var(--snackseat-warning);
+  --ion-color-warning-rgb: var(--snackseat-warning-rgb);
+  --ion-color-warning-contrast: var(--snackseat-warning-contrast);
+  --ion-color-warning-contrast-rgb: var(--snackseat-warning-contrast-rgb);
+  --ion-color-warning-shade: var(--snackseat-warning-shade);
+  --ion-color-warning-tint: var(--snackseat-warning-tint);
+
+  --ion-color-danger: var(--snackseat-danger);
+  --ion-color-danger-rgb: var(--snackseat-danger-rgb);
+  --ion-color-danger-contrast: var(--snackseat-danger-contrast);
+  --ion-color-danger-contrast-rgb: var(--snackseat-danger-contrast-rgb);
+  --ion-color-danger-shade: var(--snackseat-danger-shade);
+  --ion-color-danger-tint: var(--snackseat-danger-tint);
+
+  // ============================================
+  // NEUTRAL COLORS (Light Mode)
+  // ============================================
+  --ion-color-light: #F8F9FA;
+  --ion-color-light-rgb: 248, 249, 250;
+  --ion-color-light-contrast: #000000;
+  --ion-color-light-contrast-rgb: 0, 0, 0;
+  --ion-color-light-shade: #dadcde;
+  --ion-color-light-tint: #f9fafb;
+
+  --ion-color-medium: #6C757D;
+  --ion-color-medium-rgb: 108, 117, 125;
+  --ion-color-medium-contrast: #ffffff;
+  --ion-color-medium-contrast-rgb: 255, 255, 255;
+  --ion-color-medium-shade: #5f676e;
+  --ion-color-medium-tint: #7b838a;
+
+  --ion-color-dark: #212529;
+  --ion-color-dark-rgb: 33, 37, 41;
+  --ion-color-dark-contrast: #ffffff;
+  --ion-color-dark-contrast-rgb: 255, 255, 255;
+  --ion-color-dark-shade: #1d2024;
+  --ion-color-dark-tint: #373b3e;
+
+  // ============================================
+  // BACKGROUND & TEXT
+  // ============================================
+  --ion-background-color: #ffffff;
+  --ion-background-color-rgb: 255, 255, 255;
+
+  --ion-text-color: #212529;
+  --ion-text-color-rgb: 33, 37, 41;
+
+  --ion-text-color-secondary: #6C757D;
+  --ion-text-color-tertiary: #ADB5BD;
+
+  // ============================================
+  // BORDERS & SHADOWS
+  // ============================================
+  --ion-border-color: #DEE2E6;
+  --ion-border-radius: 12px;
+  --ion-border-radius-sm: 8px;
+  --ion-border-radius-lg: 16px;
+  --ion-border-radius-xl: 24px;
+
+  --ion-box-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --ion-box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --ion-box-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --ion-box-shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.15);
+
+  // ============================================
+  // GRADIENTS
+  // ============================================
+  --gradient-primary: linear-gradient(135deg, #FF6B35 0%, #F7B801 100%);
+  --gradient-secondary: linear-gradient(135deg, #004E89 0%, #1a6095 100%);
+  --gradient-success: linear-gradient(135deg, #1DB954 0%, #34c065 100%);
+  --gradient-danger: linear-gradient(135deg, #E63946 0%, #e94d59 100%);
+  --gradient-overlay: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.7) 100%);
+
+  // ============================================
+  // SPACING
+  // ============================================
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-xxl: 48px;
+
+  // ============================================
+  // TYPOGRAPHY
+  // ============================================
+  --font-family-primary: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-family-secondary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 30px;
+  --font-size-4xl: 36px;
+
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  // ============================================
+  // TRANSITIONS
+  // ============================================
+  --transition-fast: 150ms ease-in-out;
+  --transition-base: 250ms ease-in-out;
+  --transition-slow: 350ms ease-in-out;
+
+  // ============================================
+  // GLASSMORPHISM
+  // ============================================
+  --glass-background: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+  --glass-backdrop-filter: blur(10px);
+}
+
+// ============================================
+// DARK MODE
+// ============================================
+@media (prefers-color-scheme: dark) {
+  :root {
+    // Dark mode brand colors (slightly adjusted for better contrast)
+    --snackseat-primary: #FF7A49;
+    --snackseat-primary-shade: #ff6b35;
+    --snackseat-primary-tint: #ff895d;
+
+    --snackseat-secondary: #1a6095;
+    --snackseat-secondary-shade: #004E89;
+    --snackseat-secondary-tint: #2e70a1;
+
+    // Dark mode backgrounds
+    --ion-background-color: #121212;
+    --ion-background-color-rgb: 18, 18, 18;
+
+    --ion-background-color-step-50: #1e1e1e;
+    --ion-background-color-step-100: #2a2a2a;
+    --ion-background-color-step-150: #363636;
+    --ion-background-color-step-200: #414141;
+    --ion-background-color-step-250: #4d4d4d;
+    --ion-background-color-step-300: #595959;
+    --ion-background-color-step-350: #656565;
+    --ion-background-color-step-400: #717171;
+    --ion-background-color-step-450: #7d7d7d;
+    --ion-background-color-step-500: #898989;
+    --ion-background-color-step-550: #949494;
+    --ion-background-color-step-600: #a0a0a0;
+    --ion-background-color-step-650: #acacac;
+    --ion-background-color-step-700: #b8b8b8;
+    --ion-background-color-step-750: #c4c4c4;
+    --ion-background-color-step-800: #d0d0d0;
+    --ion-background-color-step-850: #dbdbdb;
+    --ion-background-color-step-900: #e7e7e7;
+    --ion-background-color-step-950: #f3f3f3;
+
+    // Dark mode text
+    --ion-text-color: #E9ECEF;
+    --ion-text-color-rgb: 233, 236, 239;
+    --ion-text-color-secondary: #ADB5BD;
+    --ion-text-color-tertiary: #6C757D;
+
+    // Dark mode borders
+    --ion-border-color: #2a2a2a;
+
+    // Dark mode cards
+    --ion-card-background: #1e1e1e;
+
+    // Dark mode toolbar
+    --ion-toolbar-background: #1e1e1e;
+    --ion-toolbar-border-color: #2a2a2a;
+
+    // Dark mode item
+    --ion-item-background: #1e1e1e;
+    --ion-item-border-color: #2a2a2a;
+
+    // Dark mode glassmorphism
+    --glass-background: rgba(30, 30, 30, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  }
+}
+
+// ============================================
+// CUSTOM COLOR CLASSES
+// ============================================
+.ion-color-gradient-primary {
+  --ion-color-base: var(--gradient-primary);
+  --ion-color-contrast: #ffffff;
+}
+
+.ion-color-gradient-secondary {
+  --ion-color-base: var(--gradient-secondary);
+  --ion-color-contrast: #ffffff;
+}
+
+// ============================================
+// COMPONENT OVERRIDES
+// ============================================
+ion-card {
+  border-radius: var(--ion-border-radius);
+  box-shadow: var(--ion-box-shadow);
+  transition: all var(--transition-base);
+}
+
+ion-button {
+  --border-radius: var(--ion-border-radius-sm);
+  font-weight: var(--font-weight-medium);
+  text-transform: none;
+  letter-spacing: 0.3px;
+  transition: all var(--transition-fast);
+}
+
+ion-input,
+ion-textarea,
+ion-select {
+  --border-radius: var(--ion-border-radius-sm);
+  --padding-start: 16px;
+  --padding-end: 16px;
+}
+
+ion-toolbar {
+  --border-width: 0 0 1px 0;
+  --padding-top: 8px;
+  --padding-bottom: 8px;
+}
+
+ion-header {
+  box-shadow: var(--ion-box-shadow-sm);
+}
+
+ion-modal {
+  --border-radius: var(--ion-border-radius-lg) var(--ion-border-radius-lg) 0 0;
+}
+
+ion-badge {
+  --padding-start: 8px;
+  --padding-end: 8px;
+  border-radius: 12px;
+  font-weight: var(--font-weight-medium);
+}

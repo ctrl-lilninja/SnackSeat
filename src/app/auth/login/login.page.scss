@@ -1,0 +1,324 @@
+@import '../../../theme/mixins.scss';
+
+:host {
+  ion-content {
+    --background: linear-gradient(135deg, 
+      rgba(var(--snackseat-primary-rgb), 0.1) 0%, 
+      rgba(var(--snackseat-secondary-rgb), 0.05) 100%
+    );
+  }
+}
+
+// Hero Section
+.login-hero {
+  @include flex-column-center;
+  padding: var(--spacing-xxl) var(--spacing-md) var(--spacing-lg);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, 
+      rgba(var(--snackseat-primary-rgb), 0.1) 0%, 
+      transparent 70%
+    );
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  .logo {
+    font-size: 48px;
+    margin-bottom: var(--spacing-md);
+    animation: bounceIn 0.8s ease-out;
+    position: relative;
+    z-index: 1;
+  }
+  
+  h1 {
+    @include text-gradient(var(--gradient-primary));
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--spacing-sm);
+    animation: fadeInDown 0.6s ease-out;
+    position: relative;
+    z-index: 1;
+  }
+  
+  p {
+    color: var(--ion-text-color-secondary);
+    font-size: var(--font-size-base);
+    animation: fadeInUp 0.6s ease-out 0.2s both;
+    position: relative;
+    z-index: 1;
+  }
+}
+
+// Login Card
+.login-card {
+  margin: 0 var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--ion-border-radius-xl);
+  box-shadow: var(--ion-box-shadow-lg);
+  overflow: hidden;
+  animation: scaleIn 0.5s ease-out 0.3s both;
+  
+  @include desktop {
+    max-width: 500px;
+    margin: 0 auto var(--spacing-lg);
+  }
+  
+  ion-card-header {
+    background: var(--gradient-primary);
+    color: white;
+    padding: var(--spacing-lg);
+    text-align: center;
+    
+    ion-card-title {
+      font-size: var(--font-size-2xl);
+      font-weight: var(--font-weight-bold);
+      color: white;
+      margin-bottom: var(--spacing-xs);
+    }
+    
+    ion-card-subtitle {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: var(--font-size-base);
+    }
+  }
+  
+  ion-card-content {
+    padding: var(--spacing-xl) var(--spacing-lg);
+  }
+}
+
+// Form Styling
+form {
+  .form-group {
+    margin-bottom: var(--spacing-lg);
+    
+    ion-item {
+      --background: var(--ion-background-color);
+      --border-radius: var(--ion-border-radius);
+      --padding-start: 0;
+      --inner-padding-end: 0;
+      border: 2px solid var(--ion-border-color);
+      border-radius: var(--ion-border-radius);
+      transition: all var(--transition-fast);
+      margin-bottom: 0;
+      
+      &.item-has-focus {
+        border-color: var(--snackseat-primary);
+        box-shadow: 0 0 0 4px rgba(var(--snackseat-primary-rgb), 0.1);
+      }
+      
+      ion-label {
+        font-weight: var(--font-weight-medium);
+        color: var(--ion-text-color);
+        margin-bottom: var(--spacing-xs);
+      }
+      
+      ion-input {
+        --padding-start: var(--spacing-md);
+        --padding-end: var(--spacing-md);
+        font-size: var(--font-size-base);
+      }
+    }
+  }
+  
+  // Submit Button
+  .submit-button {
+    margin-top: var(--spacing-xl);
+    
+    ion-button {
+      --border-radius: var(--ion-border-radius);
+      --box-shadow: var(--ion-box-shadow);
+      --background: var(--gradient-primary);
+      height: 48px;
+      font-size: var(--font-size-base);
+      font-weight: var(--font-weight-semibold);
+      text-transform: none;
+      letter-spacing: 0.5px;
+      transition: all var(--transition-base);
+      
+      &:hover:not([disabled]) {
+        --box-shadow: var(--ion-box-shadow-md);
+        transform: translateY(-2px);
+      }
+      
+      &:active:not([disabled]) {
+        transform: translateY(0);
+      }
+      
+      &[disabled] {
+        opacity: 0.6;
+      }
+      
+      ion-spinner {
+        margin-right: var(--spacing-sm);
+      }
+    }
+  }
+}
+
+// Divider
+.divider {
+  @include flex-center;
+  margin: var(--spacing-xl) 0;
+  position: relative;
+  
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--ion-border-color);
+  }
+  
+  span {
+    padding: 0 var(--spacing-md);
+    color: var(--ion-text-color-secondary);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+  }
+}
+
+// Sign Up Link
+.signup-link {
+  ion-button {
+    --color: var(--snackseat-primary);
+    font-weight: var(--font-weight-medium);
+    text-transform: none;
+    transition: all var(--transition-fast);
+    
+    &:hover {
+      --color: var(--snackseat-primary-shade);
+      transform: scale(1.02);
+    }
+  }
+}
+
+// Features Section
+.features-section {
+  padding: var(--spacing-xl) var(--spacing-md);
+  
+  .features-grid {
+    @include grid(1, var(--spacing-md));
+    max-width: 500px;
+    margin: 0 auto;
+    
+    @include tablet-up {
+      @include grid(3, var(--spacing-lg));
+      max-width: 100%;
+    }
+  }
+  
+  .feature-item {
+    @include flex-column-center;
+    text-align: center;
+    padding: var(--spacing-lg);
+    background: var(--ion-background-color);
+    border-radius: var(--ion-border-radius-lg);
+    box-shadow: var(--ion-box-shadow-sm);
+    transition: all var(--transition-base);
+    animation: fadeInUp 0.6s ease-out both;
+    
+    @for $i from 1 through 3 {
+      &:nth-child(#{$i}) {
+        animation-delay: #{0.4 + ($i * 0.1)}s;
+      }
+    }
+    
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--ion-box-shadow);
+    }
+    
+    ion-icon {
+      font-size: 40px;
+      color: var(--snackseat-primary);
+      margin-bottom: var(--spacing-sm);
+    }
+    
+    h3 {
+      font-size: var(--font-size-base);
+      font-weight: var(--font-weight-semibold);
+      margin-bottom: var(--spacing-xs);
+    }
+    
+    p {
+      font-size: var(--font-size-sm);
+      color: var(--ion-text-color-secondary);
+      margin: 0;
+    }
+  }
+}
+
+// Error Message
+.error-message {
+  background: rgba(var(--snackseat-danger-rgb), 0.1);
+  border-left: 4px solid var(--snackseat-danger);
+  padding: var(--spacing-md);
+  border-radius: var(--ion-border-radius-sm);
+  margin-bottom: var(--spacing-md);
+  animation: shake 0.5s ease-in-out;
+  
+  p {
+    color: var(--snackseat-danger);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    margin: 0;
+    
+    ion-icon {
+      vertical-align: middle;
+      margin-right: var(--spacing-xs);
+    }
+  }
+}
+
+// Loading Overlay
+.loading-overlay {
+  @include absolute-full;
+  @include flex-center;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  animation: fadeIn 0.3s ease-in-out;
+  
+  .loading-content {
+    @include flex-column-center;
+    background: var(--ion-background-color);
+    padding: var(--spacing-xl);
+    border-radius: var(--ion-border-radius-lg);
+    box-shadow: var(--ion-box-shadow-lg);
+    
+    ion-spinner {
+      margin-bottom: var(--spacing-md);
+    }
+    
+    p {
+      color: var(--ion-text-color);
+      font-weight: var(--font-weight-medium);
+    }
+  }
+}
+
+// Responsive Adjustments
+@include mobile {
+  .login-hero {
+    padding: var(--spacing-xl) var(--spacing-md) var(--spacing-md);
+    
+    h1 {
+      font-size: var(--font-size-2xl);
+    }
+  }
+  
+  .login-card {
+    ion-card-content {
+      padding: var(--spacing-lg) var(--spacing-md);
+    }
+  }
+}

@@ -35,3 +35,478 @@
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import "@ionic/angular/css/palettes/dark.system.css";
+
+// ============================================
+// CUSTOM THEME IMPORTS
+// ============================================
+@import "./theme/variables.scss";
+@import "./theme/animations.scss";
+@import "./theme/mixins.scss";
+
+// ============================================
+// GLOBAL STYLES
+// ============================================
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// ============================================
+// TYPOGRAPHY UTILITIES
+// ============================================
+
+.text-xs { font-size: var(--font-size-xs); }
+.text-sm { font-size: var(--font-size-sm); }
+.text-base { font-size: var(--font-size-base); }
+.text-lg { font-size: var(--font-size-lg); }
+.text-xl { font-size: var(--font-size-xl); }
+.text-2xl { font-size: var(--font-size-2xl); }
+.text-3xl { font-size: var(--font-size-3xl); }
+.text-4xl { font-size: var(--font-size-4xl); }
+
+.font-light { font-weight: var(--font-weight-light); }
+.font-normal { font-weight: var(--font-weight-normal); }
+.font-medium { font-weight: var(--font-weight-medium); }
+.font-semibold { font-weight: var(--font-weight-semibold); }
+.font-bold { font-weight: var(--font-weight-bold); }
+
+.text-primary { color: var(--snackseat-primary); }
+.text-secondary { color: var(--snackseat-secondary); }
+.text-tertiary { color: var(--snackseat-tertiary); }
+.text-success { color: var(--snackseat-success); }
+.text-warning { color: var(--snackseat-warning); }
+.text-danger { color: var(--snackseat-danger); }
+.text-muted { color: var(--ion-text-color-secondary); }
+
+.text-gradient-primary {
+  @include text-gradient(var(--gradient-primary));
+}
+
+.text-gradient-secondary {
+  @include text-gradient(var(--gradient-secondary));
+}
+
+// ============================================
+// SPACING UTILITIES
+// ============================================
+
+.m-0 { margin: 0; }
+.mt-0 { margin-top: 0; }
+.mb-0 { margin-bottom: 0; }
+.ml-0 { margin-left: 0; }
+.mr-0 { margin-right: 0; }
+
+.m-xs { margin: var(--spacing-xs); }
+.m-sm { margin: var(--spacing-sm); }
+.m-md { margin: var(--spacing-md); }
+.m-lg { margin: var(--spacing-lg); }
+.m-xl { margin: var(--spacing-xl); }
+
+.mt-xs { margin-top: var(--spacing-xs); }
+.mt-sm { margin-top: var(--spacing-sm); }
+.mt-md { margin-top: var(--spacing-md); }
+.mt-lg { margin-top: var(--spacing-lg); }
+.mt-xl { margin-top: var(--spacing-xl); }
+
+.mb-xs { margin-bottom: var(--spacing-xs); }
+.mb-sm { margin-bottom: var(--spacing-sm); }
+.mb-md { margin-bottom: var(--spacing-md); }
+.mb-lg { margin-bottom: var(--spacing-lg); }
+.mb-xl { margin-bottom: var(--spacing-xl); }
+
+.p-0 { padding: 0; }
+.p-xs { padding: var(--spacing-xs); }
+.p-sm { padding: var(--spacing-sm); }
+.p-md { padding: var(--spacing-md); }
+.p-lg { padding: var(--spacing-lg); }
+.p-xl { padding: var(--spacing-xl); }
+
+// ============================================
+// LAYOUT UTILITIES
+// ============================================
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-md);
+}
+
+.flex { display: flex; }
+.flex-column { @include flex-column; }
+.flex-center { @include flex-center; }
+.flex-between { @include flex-between; }
+.flex-column-center { @include flex-column-center; }
+
+.items-center { align-items: center; }
+.items-start { align-items: flex-start; }
+.items-end { align-items: flex-end; }
+
+.justify-center { justify-content: center; }
+.justify-start { justify-content: flex-start; }
+.justify-end { justify-content: flex-end; }
+.justify-between { justify-content: space-between; }
+
+.gap-xs { gap: var(--spacing-xs); }
+.gap-sm { gap: var(--spacing-sm); }
+.gap-md { gap: var(--spacing-md); }
+.gap-lg { gap: var(--spacing-lg); }
+.gap-xl { gap: var(--spacing-xl); }
+
+// ============================================
+// CARD ENHANCEMENTS
+// ============================================
+
+.card-modern {
+  border-radius: var(--ion-border-radius-lg);
+  box-shadow: var(--ion-box-shadow);
+  overflow: hidden;
+  transition: all var(--transition-base);
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--ion-box-shadow-md);
+  }
+}
+
+.card-glass {
+  @include glass-effect;
+  border-radius: var(--ion-border-radius-lg);
+}
+
+.card-gradient {
+  background: var(--gradient-primary);
+  color: white;
+  border-radius: var(--ion-border-radius-lg);
+  
+  ion-card-title,
+  ion-card-subtitle,
+  p {
+    color: white;
+  }
+}
+
+// ============================================
+// BUTTON ENHANCEMENTS
+// ============================================
+
+.btn-gradient-primary {
+  --background: var(--gradient-primary);
+  --background-hover: var(--gradient-primary);
+  --background-activated: var(--gradient-primary);
+  --box-shadow: var(--ion-box-shadow);
+  font-weight: var(--font-weight-semibold);
+  
+  &:hover {
+    --box-shadow: var(--ion-box-shadow-md);
+  }
+}
+
+.btn-gradient-secondary {
+  --background: var(--gradient-secondary);
+  --background-hover: var(--gradient-secondary);
+  --background-activated: var(--gradient-secondary);
+  --box-shadow: var(--ion-box-shadow);
+  font-weight: var(--font-weight-semibold);
+}
+
+.btn-glass {
+  @include glass-effect;
+  --background: var(--glass-background);
+  --color: var(--ion-text-color);
+}
+
+.btn-icon-only {
+  --padding-start: 12px;
+  --padding-end: 12px;
+  width: 44px;
+  height: 44px;
+}
+
+// ============================================
+// BADGE STYLES
+// ============================================
+
+.badge-modern {
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-dot {
+  &::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    display: inline-block;
+  }
+}
+
+// ============================================
+// INPUT ENHANCEMENTS
+// ============================================
+
+ion-item {
+  --border-radius: var(--ion-border-radius-sm);
+  --padding-start: 16px;
+  --inner-padding-end: 16px;
+  --highlight-color-focused: var(--snackseat-primary);
+  margin-bottom: var(--spacing-sm);
+  
+  &.item-has-focus {
+    --highlight-background: rgba(var(--snackseat-primary-rgb), 0.1);
+  }
+}
+
+ion-input,
+ion-textarea,
+ion-select {
+  --padding-start: 16px;
+  --padding-end: 16px;
+  font-size: var(--font-size-base);
+}
+
+// ============================================
+// HEADER ENHANCEMENTS
+// ============================================
+
+ion-header {
+  &.header-modern {
+    ion-toolbar {
+      --background: linear-gradient(135deg, var(--snackseat-primary) 0%, var(--snackseat-secondary) 100%);
+      --color: white;
+      --border-width: 0;
+      padding-top: 8px;
+      padding-bottom: 8px;
+      
+      ion-title {
+        font-weight: var(--font-weight-bold);
+        font-size: var(--font-size-xl);
+      }
+      
+      ion-button {
+        --color: white;
+      }
+    }
+  }
+}
+
+// ============================================
+// CONTENT ENHANCEMENTS
+// ============================================
+
+ion-content {
+  --background: var(--ion-background-color);
+  
+  &.content-gradient {
+    --background: linear-gradient(180deg, 
+      rgba(var(--snackseat-primary-rgb), 0.05) 0%, 
+      var(--ion-background-color) 30%
+    );
+  }
+}
+
+// ============================================
+// LIST ENHANCEMENTS
+// ============================================
+
+.list-modern {
+  ion-item {
+    --border-radius: var(--ion-border-radius);
+    margin-bottom: var(--spacing-sm);
+    box-shadow: var(--ion-box-shadow-sm);
+    
+    &:hover {
+      box-shadow: var(--ion-box-shadow);
+    }
+  }
+}
+
+// ============================================
+// MODAL ENHANCEMENTS
+// ============================================
+
+ion-modal {
+  --border-radius: var(--ion-border-radius-xl) var(--ion-border-radius-xl) 0 0;
+  --box-shadow: var(--ion-box-shadow-lg);
+  
+  &.modal-fullscreen {
+    --height: 100%;
+    --border-radius: 0;
+  }
+}
+
+// ============================================
+// LOADING & EMPTY STATES
+// ============================================
+
+.loading-container {
+  @include flex-column-center;
+  padding: var(--spacing-xxl);
+  
+  ion-spinner {
+    margin-bottom: var(--spacing-md);
+  }
+  
+  p {
+    color: var(--ion-text-color-secondary);
+    font-size: var(--font-size-sm);
+  }
+}
+
+.empty-state {
+  @include flex-column-center;
+  padding: var(--spacing-xxl);
+  text-align: center;
+  
+  ion-icon {
+    font-size: 64px;
+    color: var(--ion-color-medium);
+    margin-bottom: var(--spacing-md);
+  }
+  
+  h3 {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  p {
+    color: var(--ion-text-color-secondary);
+    margin-bottom: var(--spacing-lg);
+  }
+}
+
+// ============================================
+// AVATAR
+// ============================================
+
+.avatar {
+  @include avatar(48px);
+  
+  &.avatar-sm {
+    @include avatar(32px);
+  }
+  
+  &.avatar-lg {
+    @include avatar(64px);
+  }
+  
+  &.avatar-xl {
+    @include avatar(96px);
+  }
+}
+
+// ============================================
+// DIVIDER
+// ============================================
+
+.divider {
+  height: 1px;
+  background: var(--ion-border-color);
+  margin: var(--spacing-md) 0;
+  
+  &.divider-gradient {
+    background: var(--gradient-primary);
+    height: 2px;
+  }
+}
+
+// ============================================
+// SCROLLBAR STYLING
+// ============================================
+
+* {
+  @include custom-scrollbar;
+}
+
+// ============================================
+// ACCESSIBILITY
+// ============================================
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+// ============================================
+// RESPONSIVE UTILITIES
+// ============================================
+
+.hide-mobile {
+  @include mobile {
+    display: none !important;
+  }
+}
+
+.hide-tablet {
+  @include tablet {
+    display: none !important;
+  }
+}
+
+.hide-desktop {
+  @include desktop {
+    display: none !important;
+  }
+}
+
+.show-mobile {
+  display: none !important;
+  
+  @include mobile {
+    display: block !important;
+  }
+}
+
+// ============================================
+// UTILITY CLASSES
+// ============================================
+
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+
+.rounded { border-radius: var(--ion-border-radius); }
+.rounded-sm { border-radius: var(--ion-border-radius-sm); }
+.rounded-lg { border-radius: var(--ion-border-radius-lg); }
+.rounded-xl { border-radius: var(--ion-border-radius-xl); }
+.rounded-full { border-radius: 9999px; }
+
+.shadow-sm { @include shadow-sm; }
+.shadow { @include shadow; }
+.shadow-md { @include shadow-md; }
+.shadow-lg { @include shadow-lg; }
+
+.cursor-pointer { cursor: pointer; }
+.cursor-not-allowed { cursor: not-allowed; }
+
+.overflow-hidden { overflow: hidden; }
+.overflow-auto { overflow: auto; }
+
+.relative { position: relative; }
+.absolute { position: absolute; }
+.fixed { position: fixed; }
+
+.z-10 { z-index: 10; }
+.z-20 { z-index: 20; }
+.z-30 { z-index: 30; }
+.z-40 { z-index: 40; }
+.z-50 { z-index: 50; }

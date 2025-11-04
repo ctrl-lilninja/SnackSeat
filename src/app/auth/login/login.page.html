@@ -1,43 +1,96 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>SnackSeat - Login</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content [fullscreen]="true" class="ion-padding">
+  <!-- Hero Section -->
+  <div class="login-hero">
+    <ion-icon name="restaurant" class="logo"></ion-icon>
+    <h1>Welcome Back!</h1>
+    <p>Sign in to reserve your favorite snack spot</p>
+  </div>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">SnackSeat - Login</ion-title>
-    </ion-toolbar>
-  </ion-header>
-
-  <ion-card>
+  <!-- Login Card -->
+  <ion-card class="login-card">
     <ion-card-header>
-      <ion-card-title>Welcome to SnackSeat</ion-card-title>
-      <ion-card-subtitle>Please sign in to continue</ion-card-subtitle>
+      <ion-card-title>Sign In</ion-card-title>
+      <ion-card-subtitle>Access your SnackSeat account</ion-card-subtitle>
     </ion-card-header>
 
     <ion-card-content>
       <form (ngSubmit)="onLogin()">
-        <ion-item>
-          <ion-label position="floating">Email</ion-label>
-          <ion-input type="email" [(ngModel)]="loginData.email" name="email" id="email" required></ion-input>
-        </ion-item>
+        <div class="form-group">
+          <ion-item lines="none">
+            <ion-label position="floating">
+              <ion-icon name="mail-outline"></ion-icon>
+              Email Address
+            </ion-label>
+            <ion-input 
+              type="email" 
+              [(ngModel)]="loginData.email" 
+              name="email" 
+              id="email" 
+              required
+              placeholder="Enter your email">
+            </ion-input>
+          </ion-item>
+        </div>
 
-        <ion-item>
-          <ion-label position="floating">Password</ion-label>
-          <ion-input type="password" [(ngModel)]="loginData.password" name="password" id="password" required></ion-input>
-        </ion-item>
+        <div class="form-group">
+          <ion-item lines="none">
+            <ion-label position="floating">
+              <ion-icon name="lock-closed-outline"></ion-icon>
+              Password
+            </ion-label>
+            <ion-input 
+              type="password" 
+              [(ngModel)]="loginData.password" 
+              name="password" 
+              id="password" 
+              required
+              placeholder="Enter your password">
+            </ion-input>
+          </ion-item>
+        </div>
 
-        <ion-button expand="block" type="submit" [disabled]="isLoading">
-          <ion-spinner *ngIf="isLoading" slot="start" name="crescent"></ion-spinner>
-          {{ isLoading ? 'Signing In...' : 'Sign In' }}
-        </ion-button>
+        <div class="submit-button">
+          <ion-button expand="block" type="submit" [disabled]="isLoading" class="ion-no-margin">
+            <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
+            <span *ngIf="!isLoading">
+              <ion-icon name="log-in-outline" slot="start"></ion-icon>
+              Sign In
+            </span>
+            <span *ngIf="isLoading">Signing In...</span>
+          </ion-button>
+        </div>
       </form>
 
-      <ion-button fill="clear" expand="block" routerLink="/auth/signup">
-        Don't have an account? Sign Up
-      </ion-button>
+      <div class="divider">
+        <span>OR</span>
+      </div>
+
+      <div class="signup-link">
+        <ion-button fill="clear" expand="block" routerLink="/auth/signup" class="ion-no-margin">
+          Don't have an account? <strong>&nbsp;Sign Up</strong>
+        </ion-button>
+      </div>
     </ion-card-content>
   </ion-card>
+
+  <!-- Features Section -->
+  <div class="features-section">
+    <div class="features-grid">
+      <div class="feature-item">
+        <ion-icon name="search-outline"></ion-icon>
+        <h3>Browse Shops</h3>
+        <p>Find nearby snack spots</p>
+      </div>
+      <div class="feature-item">
+        <ion-icon name="calendar-outline"></ion-icon>
+        <h3>Easy Booking</h3>
+        <p>Reserve your seat instantly</p>
+      </div>
+      <div class="feature-item">
+        <ion-icon name="star-outline"></ion-icon>
+        <h3>Best Deals</h3>
+        <p>Exclusive offers for you</p>
+      </div>
+    </div>
+  </div>
 </ion-content>

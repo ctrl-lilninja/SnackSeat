@@ -11,13 +11,6 @@
     </ion-toolbar>
   </ion-header>
 
-  <!-- Create Shop Button if no shop exists -->
-  <div *ngIf="!shopOwner" class="create-shop-container">
-    <ion-button expand="block" size="large" color="primary" (click)="showCreateModal()">
-      <ion-icon name="add-circle" slot="start"></ion-icon>
-      ➕ Create Shop
-    </ion-button>
-  </div>
 
   <!-- Shop Owner Details Card if shop owner exists -->
   <ion-card *ngIf="shopOwner">
@@ -58,10 +51,6 @@
   <ion-card>
     <ion-card-header>
       <ion-card-title>My Shops</ion-card-title>
-      <ion-button fill="clear" slot="end" (click)="showCreateModal()">
-        <ion-icon name="add-circle" slot="start"></ion-icon>
-        Add Shop
-      </ion-button>
     </ion-card-header>
     <ion-card-content>
       <div *ngIf="shops.length > 0; else noShops">

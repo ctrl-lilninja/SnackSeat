@@ -226,17 +226,50 @@ export class MakeReservationPage implements OnInit, OnDestroy {
 
     const selectedDateTime = new Date(control.value);
     const selectedTime = selectedDateTime.toTimeString().split(' ')[0].substring(0, 5); // HH:MM format
-    const openingTime = this.shop.openingTime;
-    const closingTime = this.shop.closingTime;
-
-    if (selectedTime < openingTime || selectedTime > closingTime) {
+    
+    // Get the weekday of the selected date
+    const weekdays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const selectedWeekday = weekdays[selectedDateTime.getDay()] as keyof typeof this.shop.openDays;
+    
+    // Check if the shop has openDays configuration
+    if (!this.shop.openDays || !this.shop.openDays[selectedWeekday]) {
+      // Fallback to general opening/closing times if openDays is not configured
+      const openingTime = this.shop.openingTime;
+      const closingTime = this.shop.closingTime;
+      
+      if (selectedTime < openingTime || selectedTime > closingTime) {
+        return { timeOutsideHours: true };
+      }
+      return null;
+    }
+    
+    // Check if shop is enabled on the selected weekday
+    const dayConfig = this.shop.openDays[selectedWeekday];
+    if (!dayConfig.enabled) {
+      return { shopClosed: true };
+    }
+    
+    // Check if selected time is within the shop's hours for that specific day
+    const openTime = dayConfig.open;
+    const closeTime = dayConfig.close;
+    
+    if (selectedTime < openTime || selectedTime > closeTime) {
       return { timeOutsideHours: true };
     }
-
-    // Check if shop is open on the selected date and time
-    const shopStatus = this.shopService.getShopStatus(this.shop);
-    if (!shopStatus.isOpen) {
-      return { shopClosed: true };
+    
+    // Check for daily overrides if they exist
+    const selectedDateStr = selectedDateTime.toISOString().split('T')[0]; // YYYY-MM-DD format
+    if (this.shop.dailyOverrides && this.shop.dailyOverrides[selectedDateStr]) {
+      const override = this.shop.dailyOverrides[selectedDateStr];
+      if (!override.enabled) {
+        return { shopClosed: true };
+      }
+      // If override has custom hours, validate against those
+      if (override.open && override.close) {
+        if (selectedTime < override.open || selectedTime > override.close) {
+          return { timeOutsideHours: true };
+        }
+      }
     }
 
     return null;

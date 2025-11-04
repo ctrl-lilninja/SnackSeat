@@ -63,15 +63,17 @@
             formControlName="datetime"
             [min]="minDate"
             [max]="maxDate"
-            displayFormat="MMM DD, YYYY HH:mm"
-            pickerFormat="MMM DD YYYY HH:mm"
+            presentation="date-time"
             placeholder="Select date and time">
           </ion-datetime>
+          <ion-note slot="error" *ngIf="reservationForm.get('datetime')?.hasError('required') && reservationForm.get('datetime')?.touched">
+            Please select a date and time
+          </ion-note>
           <ion-note slot="error" *ngIf="reservationForm.get('datetime')?.hasError('timeOutsideHours') && reservationForm.get('datetime')?.touched">
-            Time must be within shop hours ({{ shop.openingTime }} - {{ shop.closingTime }})
+            Selected time is outside shop hours. Please check the shop's opening hours for the selected day.
           </ion-note>
           <ion-note slot="error" *ngIf="reservationForm.get('datetime')?.hasError('shopClosed') && reservationForm.get('datetime')?.touched">
-            Shop is closed on the selected date and time
+            Shop is closed on the selected date. Please choose a different date.
           </ion-note>
         </ion-item>
 

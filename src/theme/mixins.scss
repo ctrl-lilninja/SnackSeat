@@ -1,0 +1,342 @@
+// ============================================
+// SCSS MIXINS FOR REUSABLE STYLES
+// ============================================
+
+// Flexbox utilities
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+@mixin flex-column-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+// Glassmorphism effect
+@mixin glass-effect {
+  background: var(--glass-background);
+  backdrop-filter: var(--glass-backdrop-filter);
+  -webkit-backdrop-filter: var(--glass-backdrop-filter);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+// Card with hover effect
+@mixin card-hover {
+  transition: all var(--transition-base);
+  cursor: pointer;
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--ion-box-shadow-md);
+  }
+  
+  &:active {
+    transform: translateY(-2px);
+  }
+}
+
+// Gradient background
+@mixin gradient-bg($gradient) {
+  background: $gradient;
+  background-size: 200% 200%;
+  transition: background-position var(--transition-slow);
+  
+  &:hover {
+    background-position: right center;
+  }
+}
+
+// Text gradient
+@mixin text-gradient($gradient) {
+  background: $gradient;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+// Truncate text
+@mixin truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Multi-line truncate
+@mixin line-clamp($lines) {
+  display: -webkit-box;
+  -webkit-line-clamp: $lines;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// Responsive breakpoints
+@mixin mobile {
+  @media (max-width: 576px) {
+    @content;
+  }
+}
+
+@mixin tablet {
+  @media (min-width: 577px) and (max-width: 992px) {
+    @content;
+  }
+}
+
+@mixin desktop {
+  @media (min-width: 993px) {
+    @content;
+  }
+}
+
+@mixin mobile-only {
+  @media (max-width: 576px) {
+    @content;
+  }
+}
+
+@mixin tablet-up {
+  @media (min-width: 577px) {
+    @content;
+  }
+}
+
+@mixin desktop-up {
+  @media (min-width: 993px) {
+    @content;
+  }
+}
+
+// Absolute positioning
+@mixin absolute-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@mixin absolute-full {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+// Button styles
+@mixin button-base {
+  padding: 12px 24px;
+  border-radius: var(--ion-border-radius-sm);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-base);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+@mixin button-gradient($gradient) {
+  @include button-base;
+  @include gradient-bg($gradient);
+  color: white;
+  
+  &:hover {
+    box-shadow: var(--ion-box-shadow);
+  }
+  
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+// Input styles
+@mixin input-base {
+  padding: 12px 16px;
+  border-radius: var(--ion-border-radius-sm);
+  border: 1px solid var(--ion-border-color);
+  font-size: var(--font-size-base);
+  transition: all var(--transition-fast);
+  
+  &:focus {
+    outline: none;
+    border-color: var(--snackseat-primary);
+    box-shadow: 0 0 0 3px rgba(var(--snackseat-primary-rgb), 0.1);
+  }
+}
+
+// Shadow utilities
+@mixin shadow-sm {
+  box-shadow: var(--ion-box-shadow-sm);
+}
+
+@mixin shadow {
+  box-shadow: var(--ion-box-shadow);
+}
+
+@mixin shadow-md {
+  box-shadow: var(--ion-box-shadow-md);
+}
+
+@mixin shadow-lg {
+  box-shadow: var(--ion-box-shadow-lg);
+}
+
+// Overlay
+@mixin overlay($opacity: 0.5) {
+  position: relative;
+  
+  &::before {
+    content: '';
+    @include absolute-full;
+    background: rgba(0, 0, 0, $opacity);
+    z-index: 1;
+  }
+}
+
+// Scrollbar styling
+@mixin custom-scrollbar {
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: var(--ion-color-light);
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: var(--ion-color-medium);
+    border-radius: 4px;
+    
+    &:hover {
+      background: var(--ion-color-medium-shade);
+    }
+  }
+}
+
+// Badge
+@mixin badge($color) {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  background: $color;
+  color: white;
+}
+
+// Avatar
+@mixin avatar($size) {
+  width: $size;
+  height: $size;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--ion-color-light);
+}
+
+// Ripple effect
+@mixin ripple-effect {
+  position: relative;
+  overflow: hidden;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
+  
+  &:active::after {
+    width: 300px;
+    height: 300px;
+  }
+}
+
+// Skeleton loader
+@mixin skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--ion-color-light) 0%,
+    var(--ion-color-light-shade) 50%,
+    var(--ion-color-light) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--ion-border-radius-sm);
+}
+
+// Focus visible (accessibility)
+@mixin focus-visible {
+  &:focus-visible {
+    outline: 2px solid var(--snackseat-primary);
+    outline-offset: 2px;
+  }
+}
+
+// Disabled state
+@mixin disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+// Grid layout
+@mixin grid($columns, $gap: var(--spacing-md)) {
+  display: grid;
+  grid-template-columns: repeat($columns, 1fr);
+  gap: $gap;
+}
+
+// Aspect ratio
+@mixin aspect-ratio($width, $height) {
+  position: relative;
+  
+  &::before {
+    content: '';
+    display: block;
+    padding-top: ($height / $width) * 100%;
+  }
+  
+  > * {
+    @include absolute-full;
+  }
+}
+
+// Hide scrollbar
+@mixin hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+// Smooth scroll
+@mixin smooth-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
