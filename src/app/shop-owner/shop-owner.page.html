@@ -1,15 +1,53 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>My Shops</ion-title>
+    <ion-title>SnackSeat Shop Owner</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="logout()">
+        <ion-icon name="log-out-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
   <ion-header collapse="condense">
     <ion-toolbar>
-      <ion-title size="large">My Shops</ion-title>
+      <ion-title size="large">SnackSeat Shop Owner</ion-title>
     </ion-toolbar>
   </ion-header>
+
+  <div class="welcome-section">
+    <h1>Welcome to SnackSeat Shop Owner!</h1>
+    <p>Manage your shops and reservations with ease.</p>
+  </div>
+
+  <ion-grid>
+    <ion-row>
+      <ion-col size="12" size-md="6">
+        <ion-card class="action-card" routerLink="/manage-shop">
+          <ion-card-header>
+            <ion-icon name="storefront-outline" size="large" color="primary"></ion-icon>
+            <ion-card-title>My Shops</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <p>View and manage your registered shops, update details, and handle availability.</p>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+
+      <ion-col size="12" size-md="6">
+        <ion-card class="action-card" routerLink="/manage-reservations">
+          <ion-card-header>
+            <ion-icon name="list-outline" size="large" color="secondary"></ion-icon>
+            <ion-card-title>Shop Reservations</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <p>Review and manage customer reservations for your shops.</p>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
 
   <!-- Add Shop FAB -->
   <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="shops.length < 2">
@@ -18,53 +56,34 @@
     </ion-fab-button>
   </ion-fab>
 
-  <!-- Shops List -->
-  <ion-card *ngFor="let shop of shops">
+  <!-- Quick Shop Overview -->
+  <ion-card *ngIf="shops.length > 0">
     <ion-card-header>
-      <ion-card-title>{{ shop.name }}</ion-card-title>
-      <ion-card-subtitle>{{ shop.category }}</ion-card-subtitle>
-      <ion-button fill="clear" color="danger" slot="end" (click)="removeShop(shop)">
-        <ion-icon name="trash" slot="start"></ion-icon>
-        Delete
-      </ion-button>
+      <ion-card-title>Quick Shop Overview</ion-card-title>
+      <ion-card-subtitle>Your active shops</ion-card-subtitle>
     </ion-card-header>
     <ion-card-content>
-      <p><strong>Description:</strong> {{ shop.description }}</p>
-      <p><strong>Email:</strong> {{ shop.email }}</p>
-      <p><strong>Phone:</strong> {{ shop.phone }}</p>
-      <p><strong>Total Seats:</strong> {{ shop.totalSeats }}</p>
-      <p><strong>Total Tables:</strong> {{ shop.totalTables }}</p>
-      <p><strong>Available Seats:</strong> {{ shop.availableSeats }}
-        <ion-button fill="clear" size="small" (click)="updateAvailableSeats(shop)">
-          <ion-icon name="create" slot="icon-only"></ion-icon>
-        </ion-button>
-      </p>
-      <p><strong>Available Tables:</strong> {{ shop.availableTables }}
-        <ion-button fill="clear" size="small" (click)="updateAvailableTables(shop)">
-          <ion-icon name="create" slot="icon-only"></ion-icon>
-        </ion-button>
-      </p>
-      <p><strong>Opening Time:</strong> {{ shop.openingTime }}
-        <ion-button fill="clear" size="small" (click)="updateOpeningTime(shop)">
-          <ion-icon name="create" slot="icon-only"></ion-icon>
-        </ion-button>
-        <ion-button fill="clear" size="small" (click)="setToNow(shop, 'openingTime')">
-          <ion-icon name="time" slot="icon-only"></ion-icon>
-        </ion-button>
-      </p>
-      <p><strong>Closing Time:</strong> {{ shop.closingTime }}
-        <ion-button fill="clear" size="small" (click)="updateClosingTime(shop)">
-          <ion-icon name="create" slot="icon-only"></ion-icon>
-        </ion-button>
-        <ion-button fill="clear" size="small" (click)="setToNow(shop, 'closingTime')">
-          <ion-icon name="time" slot="icon-only"></ion-icon>
-        </ion-button>
-        <ion-button fill="clear" size="small" (click)="extendOneHour(shop)">
-          <ion-icon name="add-circle" slot="icon-only"></ion-icon>
-        </ion-button>
-      </p>
-      <p><strong>Reservation Date:</strong> {{ shop.reservationDate }}</p>
-      <p><strong>Status:</strong> {{ isShopOpen(shop) ? 'Open' : 'Closed' }}</p>
+      <ion-list>
+        <ion-item *ngFor="let shop of shops">
+          <ion-label>
+            <h2>{{ shop.name }}</h2>
+            <p>{{ shop.category }} - {{ shop.availableSeats }} seats available</p>
+          </ion-label>
+          <ion-badge [color]="isShopOpen(shop) ? 'success' : 'danger'" slot="end">
+            {{ isShopOpen(shop) ? 'Open' : 'Closed' }}
+          </ion-badge>
+          <ion-button fill="clear" slot="end" (click)="updateAvailableSeats(shop)">
+            <ion-icon name="people" color="primary"></ion-icon>
+          </ion-button>
+          <ion-button fill="clear" slot="end" (click)="updateAvailableTables(shop)">
+            <ion-icon name="restaurant" color="secondary"></ion-icon>
+          </ion-button>
+        </ion-item>
+      </ion-list>
+      <ion-button expand="block" fill="outline" (click)="showCreateModal()" *ngIf="shops.length < 2">
+        <ion-icon name="add-circle" slot="start"></ion-icon>
+        Add New Shop
+      </ion-button>
     </ion-card-content>
   </ion-card>
 
@@ -78,6 +97,83 @@
       </ion-button>
     </ion-card-content>
   </ion-card>
+
+  <!-- Edit Shop Modal -->
+  <ion-modal [isOpen]="isEditing" (willDismiss)="isEditing = false">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Edit Shop</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="isEditing = false">Close</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content>
+        <ion-card *ngIf="selectedShop">
+          <ion-card-header>
+            <ion-card-title>{{ selectedShop.name }}</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-item>
+              <ion-label position="stacked">Shop Name</ion-label>
+              <ion-input [(ngModel)]="selectedShop.name" placeholder="Enter shop name"></ion-input>
+            </ion-item>
+
+            <ion-item>
+              <ion-label position="stacked">Description</ion-label>
+              <ion-textarea [(ngModel)]="selectedShop.description" placeholder="Describe your shop"></ion-textarea>
+            </ion-item>
+
+            <ion-item>
+              <ion-label position="stacked">Contact Email</ion-label>
+              <ion-input [(ngModel)]="selectedShop.email" type="email" placeholder="Enter email"></ion-input>
+            </ion-item>
+
+            <ion-item>
+              <ion-label position="stacked">Contact Phone</ion-label>
+              <ion-input [(ngModel)]="selectedShop.phone" placeholder="Enter phone number"></ion-input>
+            </ion-item>
+
+            <ion-item>
+              <ion-label position="stacked">Available Seats</ion-label>
+              <ion-input [(ngModel)]="selectedShop.availableSeats" type="number" min="0" [max]="selectedShop.totalSeats"></ion-input>
+            </ion-item>
+
+            <ion-item>
+              <ion-label position="stacked">Available Tables</ion-label>
+              <ion-input [(ngModel)]="selectedShop.availableTables" type="number" min="0" [max]="selectedShop.totalTables"></ion-input>
+            </ion-item>
+
+            <ion-item>
+              <ion-label position="stacked">Opening Time</ion-label>
+              <ion-input [(ngModel)]="selectedShop.openingTime" type="time"></ion-input>
+            </ion-item>
+
+            <ion-item>
+              <ion-label position="stacked">Closing Time</ion-label>
+              <ion-input [(ngModel)]="selectedShop.closingTime" type="time"></ion-input>
+            </ion-item>
+
+            <ion-item>
+              <ion-label position="stacked">Address</ion-label>
+              <ion-input [(ngModel)]="selectedShop.address" placeholder="Enter shop address"></ion-input>
+            </ion-item>
+
+            <ion-button expand="block" (click)="saveShopChanges()" color="primary">
+              <ion-icon name="save" slot="start"></ion-icon>
+              Save Changes
+            </ion-button>
+
+            <ion-button expand="block" fill="outline" color="danger" (click)="deleteShop(selectedShop)">
+              <ion-icon name="trash" slot="start"></ion-icon>
+              Delete Shop
+            </ion-button>
+          </ion-card-content>
+        </ion-card>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
 
   <!-- Create Shop Modal -->
   <ion-modal [isOpen]="isCreating" (willDismiss)="isCreating = false">
@@ -99,44 +195,44 @@
             <ion-card-content>
               <ion-item>
                 <ion-label position="stacked">Shop Name *</ion-label>
-                <ion-input formControlName="name" placeholder="Enter shop name"></ion-input>
+                <ion-input formControlName="name" name="name" id="name" placeholder="Enter shop name"></ion-input>
               </ion-item>
 
               <ion-item>
                 <ion-label position="stacked">Contact Email *</ion-label>
-                <ion-input formControlName="email" type="email" placeholder="Enter email"></ion-input>
+                <ion-input formControlName="email" name="email" id="email" type="email" placeholder="Enter email"></ion-input>
               </ion-item>
 
               <ion-item>
                 <ion-label position="stacked">Contact Phone *</ion-label>
-                <ion-input formControlName="phone" placeholder="Enter phone number"></ion-input>
+                <ion-input formControlName="phone" name="phone" id="phone" placeholder="Enter phone number"></ion-input>
               </ion-item>
 
               <ion-item>
                 <ion-label position="stacked">Description *</ion-label>
-                <ion-textarea formControlName="description" placeholder="Describe your shop"></ion-textarea>
+                <ion-textarea formControlName="description" name="description" id="description" placeholder="Describe your shop"></ion-textarea>
               </ion-item>
 
               <ion-item>
                 <ion-label position="stacked">Category *</ion-label>
-                <ion-select formControlName="category" placeholder="Select category">
+                <ion-select formControlName="category" name="category" id="category" placeholder="Select category">
                   <ion-select-option *ngFor="let cat of categories" [value]="cat">{{cat}}</ion-select-option>
                 </ion-select>
               </ion-item>
 
               <ion-item>
                 <ion-label position="stacked">Total Seats *</ion-label>
-                <ion-input formControlName="totalSeats" type="number" min="1"></ion-input>
+                <ion-input formControlName="totalSeats" name="totalSeats" id="totalSeats" type="number" min="1"></ion-input>
               </ion-item>
 
               <ion-item>
                 <ion-label position="stacked">Total Tables *</ion-label>
-                <ion-input formControlName="totalTables" type="number" min="1"></ion-input>
+                <ion-input formControlName="totalTables" name="totalTables" id="totalTables" type="number" min="1"></ion-input>
               </ion-item>
 
               <ion-item>
                 <ion-label position="stacked">Opening Time *</ion-label>
-                <ion-input formControlName="openingTime" type="time" placeholder="Select opening time"></ion-input>
+                <ion-input formControlName="openingTime" name="openingTime" id="openingTime" type="time" placeholder="Select opening time"></ion-input>
                 <ion-button fill="clear" slot="end" (click)="setToNow(null, 'openingTime')">
                   <ion-icon name="time" slot="icon-only"></ion-icon>
                 </ion-button>
@@ -144,7 +240,7 @@
 
               <ion-item>
                 <ion-label position="stacked">Closing Time *</ion-label>
-                <ion-input formControlName="closingTime" type="time" placeholder="Select closing time"></ion-input>
+                <ion-input formControlName="closingTime" name="closingTime" id="closingTime" type="time" placeholder="Select closing time"></ion-input>
                 <ion-button fill="clear" slot="end" (click)="setToNow(null, 'closingTime')">
                   <ion-icon name="time" slot="icon-only"></ion-icon>
                 </ion-button>
@@ -152,7 +248,7 @@
 
               <ion-item>
                 <ion-label position="stacked">Start Day *</ion-label>
-                <ion-select formControlName="startDay" placeholder="Select start day">
+                <ion-select formControlName="startDay" name="startDay" id="startDay" placeholder="Select start day">
                   <ion-select-option value="monday">Monday</ion-select-option>
                   <ion-select-option value="tuesday">Tuesday</ion-select-option>
                   <ion-select-option value="wednesday">Wednesday</ion-select-option>
@@ -165,7 +261,7 @@
 
               <ion-item>
                 <ion-label position="stacked">End Day *</ion-label>
-                <ion-select formControlName="endDay" placeholder="Select end day">
+                <ion-select formControlName="endDay" name="endDay" id="endDay" placeholder="Select end day">
                   <ion-select-option value="monday">Monday</ion-select-option>
                   <ion-select-option value="tuesday">Tuesday</ion-select-option>
                   <ion-select-option value="wednesday">Wednesday</ion-select-option>
@@ -189,12 +285,12 @@
 
               <ion-item>
                 <ion-label position="stacked">Latitude</ion-label>
-                <ion-input formControlName="latitude" type="number" step="0.000001"></ion-input>
+                <ion-input formControlName="latitude" name="latitude" id="latitude" type="number" step="0.000001"></ion-input>
               </ion-item>
 
               <ion-item>
                 <ion-label position="stacked">Longitude</ion-label>
-                <ion-input formControlName="longitude" type="number" step="0.000001"></ion-input>
+                <ion-input formControlName="longitude" name="longitude" id="longitude" type="number" step="0.000001"></ion-input>
               </ion-item>
 
               <ion-button expand="block" (click)="saveLocation()" color="secondary">
@@ -212,54 +308,4 @@
       </ion-content>
     </ng-template>
   </ion-modal>
-
-  <!-- Customer Reservations -->
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>Customer Reservations</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <ion-accordion-group>
-        <ion-accordion *ngFor="let reservation of reservations" [value]="reservation.id">
-          <ion-item slot="header">
-            <ion-label>
-              <h2>{{reservation.customerName}}</h2>
-              <p>{{reservation.reservationDate}} on {{reservation.weekday}}</p>
-              <p>Table: {{reservation.tableNumber}} | Seats: {{reservation.seatsRequested}} | Status: {{reservation.status}}</p>
-            </ion-label>
-          </ion-item>
-          <div slot="content">
-            <ion-item>
-              <ion-label>
-                <p><strong>Email:</strong> {{reservation.customerEmail}}</p>
-                <p><strong>Phone:</strong> {{reservation.contactNumber}}</p>
-                <p><strong>Seats:</strong> {{reservation.seatsRequested}}</p>
-                <p *ngIf="reservation.message"><strong>Message:</strong> {{reservation.message}}</p>
-              </ion-label>
-            </ion-item>
-            <ion-button
-              *ngIf="reservation.status === 'pending'"
-              fill="outline"
-              color="success"
-              (click)="confirmReservation(reservation)">
-              <ion-icon name="checkmark" slot="start"></ion-icon>
-              Confirm
-            </ion-button>
-            <ion-button
-              *ngIf="reservation.status === 'pending'"
-              fill="outline"
-              color="danger"
-              (click)="cancelReservation(reservation)">
-              <ion-icon name="close" slot="start"></ion-icon>
-              Cancel
-            </ion-button>
-          </div>
-        </ion-accordion>
-      </ion-accordion-group>
-
-      <ion-item *ngIf="reservations.length === 0">
-        <ion-label>No reservations yet.</ion-label>
-      </ion-item>
-    </ion-card-content>
-  </ion-card>
 </ion-content>

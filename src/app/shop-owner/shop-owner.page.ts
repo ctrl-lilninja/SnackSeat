@@ -26,6 +26,8 @@ export class ShopOwnerPage implements OnInit, OnDestroy {
   currentUserUid: string = '';
   isLoading = false;
   isCreating = false;
+  isEditing = false;
+  selectedShop: Shop | null = null;
   map: any;
   marker: any;
   categories = ['Snacks', 'Milk Tea', 'Bakery', 'Restaurant'];
@@ -101,13 +103,7 @@ export class ShopOwnerPage implements OnInit, OnDestroy {
   }
 
   isShopOpen(shop: Shop): boolean {
-    const now = new Date();
-    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-    const currentDay = dayNames[now.getDay()];
-    const openDay = shop.openDays[currentDay as keyof typeof shop.openDays];
-    if (!openDay.enabled) return false;
-    const currentTime = now.toTimeString().slice(0, 5); // HH:mm
-    return currentTime >= openDay.open && currentTime <= openDay.close;
+    return this.shopService.getShopStatus(shop).isOpen;
   }
 
   async getCurrentLocation(): Promise<void> {
@@ -362,7 +358,7 @@ export class ShopOwnerPage implements OnInit, OnDestroy {
           text: 'Accept',
           handler: async () => {
             try {
-              await this.reservationService.updateReservation(reservation.id!, { status: 'approved' }).toPromise();
+              await this.reservationService.updateReservation(reservation.id!, { status: 'accepted' }).toPromise();
               this.showToast('Reservation accepted!');
             } catch (error) {
               console.error('Error accepting reservation:', error);
@@ -376,31 +372,115 @@ export class ShopOwnerPage implements OnInit, OnDestroy {
   }
 
   async cancelReservation(reservation: Reservation): Promise<void> {
+    // Check if reservation can be cancelled (within 20 minutes of creation)
+    const createdAt = reservation.createdAt.toDate();
+    const now = new Date();
+    const timeDiff = now.getTime() - createdAt.getTime();
+    const minutesDiff = timeDiff / (1000 * 60);
+
+    if (minutesDiff <= 20) {
+      const alert = await this.alertCtrl.create({
+        header: 'Cancel Reservation',
+        message: `Cancel reservation for ${reservation.customerName}?`,
+        buttons: [
+          {
+            text: 'No',
+            role: 'cancel'
+          },
+          {
+            text: 'Yes',
+            handler: async () => {
+              try {
+                await this.reservationService.updateReservation(reservation.id!, { status: 'deleted' }).toPromise();
+                // Restore seat and table
+                const shop = this.shops.find(s => s.id === reservation.shopId);
+                if (shop) {
+                  await this.shopService.updateShop(this.currentUserUid, shop.id, {
+                    availableSeats: shop.availableSeats + reservation.seatsRequested,
+                    availableTables: shop.availableTables + 1
+                  }).toPromise();
+                }
+                this.showToast('Reservation cancelled!');
+              } catch (error) {
+                console.error('Error cancelling reservation:', error);
+                this.showToast('Error cancelling reservation.');
+              }
+            }
+          }
+        ]
+      });
+      await alert.present();
+    } else {
+      this.showToast('Reservations can only be cancelled within 20 minutes after booking');
+    }
+  }
+
+  editShop(shop: Shop): void {
+    this.selectedShop = { ...shop };
+    this.isEditing = true;
+  }
+
+  async saveShopChanges(): Promise<void> {
+    if (!this.selectedShop) return;
+
+    try {
+      await this.shopService.updateShop(this.currentUserUid, this.selectedShop.id, this.selectedShop).toPromise();
+      this.showToast('Shop updated successfully!');
+      this.isEditing = false;
+      this.selectedShop = null;
+    } catch (error) {
+      console.error('Error updating shop:', error);
+      this.showToast('Error updating shop.');
+    }
+  }
+
+  async deleteShop(shop: Shop): Promise<void> {
     const alert = await this.alertCtrl.create({
-      header: 'Cancel Reservation',
-      message: `Cancel reservation for ${reservation.customerName}?`,
+      header: 'Delete Shop',
+      message: `Are you sure you want to delete "${shop.name}"? This action cannot be undone.`,
       buttons: [
         {
-          text: 'No',
+          text: 'Cancel',
           role: 'cancel'
         },
         {
-          text: 'Yes',
+          text: 'Delete',
+          role: 'destructive',
           handler: async () => {
             try {
-              await this.reservationService.updateReservation(reservation.id!, { status: 'cancelled' }).toPromise();
-              // Restore seat and table
-              const shop = this.shops.find(s => s.id === reservation.shopId);
-              if (shop) {
-                await this.shopService.updateShop(this.currentUserUid, shop.id, {
-                  availableSeats: shop.availableSeats + reservation.seatsRequested,
-                  availableTables: shop.availableTables + 1
-                }).toPromise();
-              }
-              this.showToast('Reservation cancelled!');
+              await this.shopService.deleteShop(this.currentUserUid, shop.id);
+              this.showToast('Shop deleted successfully!');
+              this.isEditing = false;
+              this.selectedShop = null;
             } catch (error) {
-              console.error('Error cancelling reservation:', error);
-              this.showToast('Error cancelling reservation.');
+              console.error('Error deleting shop:', error);
+              this.showToast('Error deleting shop.');
+            }
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  async logout(): Promise<void> {
+    const alert = await this.alertCtrl.create({
+      header: 'Logout',
+      message: 'Are you sure you want to logout?',
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        },
+        {
+          text: 'Logout',
+          handler: async () => {
+            try {
+              await this.authService.logout();
+              this.showToast('Logged out successfully!');
+            } catch (error) {
+              console.error('Error logging out:', error);
+              this.showToast('Error logging out.');
             }
           }
         }

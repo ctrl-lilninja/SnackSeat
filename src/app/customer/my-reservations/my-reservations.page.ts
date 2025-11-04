@@ -1,7 +1,8 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
-import { ToastController, AlertController, RefresherCustomEvent } from '@ionic/angular';
+import { ToastController, AlertController, ModalController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
+import { switchMap, map } from 'rxjs/operators';
 import { ReservationService } from '../../services/reservation.service';
 import { AuthService } from '../../services/auth.service';
 import { ShopService } from '../../services/shop.service';
@@ -15,10 +16,12 @@ import { Shop } from '../../models/shop.model';
   standalone: false,
 })
 export class MyReservationsPage implements OnInit, OnDestroy {
-  reservations: Reservation[] = [];
+  reservations: any[] = [];
   shops: any[] = [];
-  isLoading = true;
+  isLoading = false;
+  showReservationsModal = false;
   private subscriptions: Subscription[] = [];
+  private reservationsSub: Subscription | null = null;
 
   constructor(
     private reservationService: ReservationService,
@@ -26,63 +29,72 @@ export class MyReservationsPage implements OnInit, OnDestroy {
     private shopService: ShopService,
     private router: Router,
     private toastController: ToastController,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private modalController: ModalController,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
-    this.loadReservations();
     this.loadShops();
   }
 
   ngOnDestroy(): void {
     this.subscriptions.forEach(sub => sub.unsubscribe());
+    this.reservationsSub?.unsubscribe();
   }
 
-  loadReservations(): void {
-    console.log('MyReservationsPage: Starting loadReservations');
+  async viewMyReservations(): Promise<void> {
+    console.log('MyReservationsPage: Viewing reservations');
+    this.reservationsSub?.unsubscribe();
     this.isLoading = true;
-    const currentUser = this.authService.getCurrentUser();
-    console.log('MyReservationsPage: Got currentUser observable:', currentUser);
+    this.showReservationsModal = true;
 
-    const userSub = currentUser.subscribe({
-      next: (user) => {
+    // Use switchMap to ensure Firebase calls are within injection context
+    this.reservationsSub = this.authService.getCurrentUser().pipe(
+      switchMap(user => {
         console.log('MyReservationsPage: Auth state changed, user:', user ? `UID: ${user.uid}, Email: ${user.email}` : 'null');
         if (user) {
           console.log('MyReservationsPage: User authenticated, fetching reservations for user:', user.uid);
-          const reservationsSub = this.reservationService.getReservationsByUser(user.uid).subscribe({
-            next: (reservations) => {
-              console.log('MyReservationsPage: Reservations received:', reservations.length, 'reservations');
-              this.reservations = reservations.sort((a, b) =>
-                new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-              );
-              this.isLoading = false;
-              console.log('MyReservationsPage: Reservations loaded successfully, isLoading set to false');
-            },
-            error: (error) => {
-              console.error('MyReservationsPage: Error loading reservations:', error);
-              this.showToast('Error loading reservations');
-              this.isLoading = false;
-            }
-          });
-          this.subscriptions.push(reservationsSub);
+          return this.reservationService.getReservationsByUser(user.uid).pipe(
+            map(reservations => ({
+              reservations: reservations.sort((a, b) =>
+                b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime()
+              ).map(r => ({
+                ...r,
+                reservationDate: r.reservationDate.toDate(),
+                createdAt: r.createdAt.toDate()
+              })),
+              user
+            }))
+          );
         } else {
           console.log('MyReservationsPage: No authenticated user found, skipping reservation load');
-          this.reservations = [];
-          this.isLoading = false;
+          return [{ reservations: [], user: null }];
         }
+      })
+    ).subscribe({
+      next: (result) => {
+        console.log('MyReservationsPage: Reservations received:', result.reservations.length, 'reservations');
+        this.reservations = result.reservations;
+        this.isLoading = false;
+        this.cdr.detectChanges();
+        console.log('MyReservationsPage: Reservations loaded successfully, isLoading set to false');
       },
       error: (error) => {
-        console.error('MyReservationsPage: Error getting current user:', error);
+        console.error('MyReservationsPage: Error loading reservations:', error);
+        this.showToast('Error loading reservations');
         this.isLoading = false;
+        this.showReservationsModal = false;
       }
     });
 
-    this.subscriptions.push(userSub);
+    this.subscriptions.push(this.reservationsSub);
   }
 
-  async doRefresh(event: RefresherCustomEvent): Promise<void> {
-    this.loadReservations();
-    event.target.complete();
+  closeReservationsModal(): void {
+    this.showReservationsModal = false;
+    this.reservations = [];
+    this.reservationsSub?.unsubscribe();
   }
 
   getStatusColor(status: string): string {
@@ -91,8 +103,10 @@ export class MyReservationsPage implements OnInit, OnDestroy {
         return 'success';
       case 'pending':
         return 'warning';
-      case 'cancelled':
+      case 'deleted':
         return 'danger';
+      case 'done':
+        return 'tertiary';
       case 'completed':
         return 'primary';
       default:
@@ -101,36 +115,54 @@ export class MyReservationsPage implements OnInit, OnDestroy {
   }
 
   async cancelReservation(reservation: Reservation): Promise<void> {
-    const alert = await this.alertController.create({
-      header: 'Cancel Reservation',
-      message: 'Are you sure you want to cancel this reservation?',
-      buttons: [
-        {
-          text: 'No',
-          role: 'cancel'
-        },
-        {
-          text: 'Yes',
-          role: 'destructive',
-          handler: async () => {
-            try {
-              if (reservation.id) {
-                await this.reservationService.cancelReservation(reservation.id).toPromise();
-                this.showToast('Reservation cancelled successfully');
-                this.loadReservations(); // Refresh the list
-              } else {
-                this.showToast('Reservation ID not found');
+    // Check if reservation can be cancelled (within 10 minutes of creation)
+    const createdAt = reservation.createdAt.toDate();
+    const now = new Date();
+    const timeDiff = now.getTime() - createdAt.getTime();
+    const minutesDiff = timeDiff / (1000 * 60);
+
+    if (minutesDiff <= 20) {
+      const alert = await this.alertController.create({
+        header: 'Cancel Reservation',
+        message: 'Are you sure you want to cancel this reservation? This action cannot be undone.',
+        buttons: [
+          {
+            text: 'No',
+            role: 'cancel'
+          },
+          {
+            text: 'Yes',
+            role: 'destructive',
+            handler: async () => {
+              try {
+                if (reservation.id) {
+                  await this.reservationService.cancelReservation(reservation.id).toPromise();
+                  this.showToast('Reservation cancelled successfully');
+                  // Refresh reservations in modal
+                  this.viewMyReservations();
+                } else {
+                  this.showToast('Reservation ID not found');
+                }
+              } catch (error) {
+                console.error('Error cancelling reservation:', error);
+                this.showToast('Error cancelling reservation');
               }
-            } catch (error) {
-              console.error('Error cancelling reservation:', error);
-              this.showToast('Error cancelling reservation');
             }
           }
-        }
-      ]
-    });
+        ]
+      });
+      await alert.present();
+    } else {
+      this.showToast('Reservations can only be cancelled within 20 minutes after booking');
+    }
+  }
 
-    await alert.present();
+  canCancelReservation(reservation: Reservation): boolean {
+    const createdAt = reservation.createdAt.toDate();
+    const now = new Date();
+    const timeDiff = now.getTime() - createdAt.getTime();
+    const minutesDiff = timeDiff / (1000 * 60);
+    return minutesDiff <= 20;
   }
 
   async callShop(reservation: Reservation): Promise<void> {

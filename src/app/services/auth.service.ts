@@ -1,4 +1,4 @@
-import { Injectable, inject, NgZone } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {
   Auth,
   authState,
@@ -10,8 +10,6 @@ import {
   reauthenticateWithCredential,
   EmailAuthProvider,
   deleteUser,
-  GoogleAuthProvider,
-  signInWithPopup,
 } from '@angular/fire/auth';
 import { Firestore, doc, docData, setDoc, updateDoc } from '@angular/fire/firestore';
 import { Observable, from, map, switchMap } from 'rxjs';
@@ -23,7 +21,6 @@ import { User, AuthUser } from '../models/user.model';
 export class AuthService {
   private auth = inject(Auth);
   private firestore = inject(Firestore);
-  private ngZone = inject(NgZone);
 
   // Login with email and password
   login(email: string, password: string): Observable<AuthUser> {
@@ -103,38 +100,7 @@ export class AuthService {
     return authState(this.auth).pipe(map((user) => !!user));
   }
 
-  // Google login
-  loginWithGoogle(): Observable<AuthUser> {
-    const provider = new GoogleAuthProvider();
-    // Configure provider for localhost development
-    provider.setCustomParameters({
-      prompt: 'select_account'
-    });
 
-    return from(signInWithPopup(this.auth, provider)).pipe(
-      switchMap((result) => {
-        const user = result.user;
-        const userDoc: User = {
-          uid: user.uid,
-          email: user.email!,
-          displayName: user.displayName || '',
-          username: user.displayName || user.email!.split('@')[0],
-          role: 'customer', // Default role for Google sign-in
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-
-        // Save user to Firestore if not exists
-        return from(setDoc(doc(this.firestore, 'users', user.uid), userDoc, { merge: true })).pipe(
-          map(() => ({
-            uid: user.uid,
-            email: user.email!,
-            displayName: user.displayName || '',
-          }))
-        );
-      })
-    );
-  }
 
   // Update user profile (display name and email)
   async updateProfile(updates: { displayName?: string; email?: string }): Promise<void> {

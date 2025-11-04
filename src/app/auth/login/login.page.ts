@@ -61,37 +61,17 @@ export class LoginPage implements OnInit {
         this.router.navigate(['/admin/dashboard']);
         break;
       case 'customer':
-        this.router.navigate(['/customer/browse-shops']);
+        this.router.navigate(['/customer']);
         break;
       case 'shop-owner':
-        this.router.navigate(['/shop-owner/manage-shop']);
+        this.router.navigate(['/shop-owner']);
         break;
       default:
         this.router.navigate(['/auth/login']);
     }
   }
 
-  async loginWithGoogle() {
-    this.isLoading = true;
-    try {
-      const user = await this.authService.loginWithGoogle().toPromise();
-      if (user) {
-        const profile = await this.authService.getUserProfile(user.uid).toPromise();
-        if (profile) {
-          this.isLoading = false;
-          await this.showToast('Google login successful!');
-          this.navigateBasedOnRole(profile.role);
-        } else {
-          this.isLoading = false;
-          await this.showToast('User profile not found');
-        }
-      }
-    } catch (error) {
-      this.isLoading = false;
-      console.error('Google login error:', error);
-      await this.showToast('Google login failed. Please try again.');
-    }
-  }
+
 
   private async showToast(message: string) {
     const toast = await this.toastController.create({

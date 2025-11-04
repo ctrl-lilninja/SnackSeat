@@ -1,7 +1,9 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ToastController, AlertController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
+import { switchMap, map } from 'rxjs/operators';
+import { combineLatest } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { ReservationService } from '../services/reservation.service';
 import { ShopService } from '../services/shop.service';
@@ -16,14 +18,17 @@ import { AuthUser } from '../models/user.model';
   standalone: false,
 })
 export class ManageReservationsPage implements OnInit, OnDestroy {
-  reservations: Reservation[] = [];
+  reservations: any[] = [];
   shops: Shop[] = [];
   currentUser: AuthUser | null = null;
-  isLoading = true;
-  selectedReservation: Reservation | null = null;
+  isLoading = false;
+  showReservationsModal = false;
+  selectedReservation: any = null;
   seatTableForm!: FormGroup;
   showSeatTableForm = false;
   private subscriptions: Subscription[] = [];
+  private shopsSub: Subscription | null = null;
+  private reservationsSub: Subscription | null = null;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -31,17 +36,20 @@ export class ManageReservationsPage implements OnInit, OnDestroy {
     private reservationService: ReservationService,
     private shopService: ShopService,
     private toastController: ToastController,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
     console.log('ManageReservationsPage: Initializing manage reservations page');
     this.initializeForm();
-    this.loadData();
+    this.loadShops();
   }
 
   ngOnDestroy() {
     this.subscriptions.forEach(sub => sub.unsubscribe());
+    this.shopsSub?.unsubscribe();
+    this.reservationsSub?.unsubscribe();
   }
 
   private initializeForm(): void {
@@ -51,79 +59,92 @@ export class ManageReservationsPage implements OnInit, OnDestroy {
     });
   }
 
-  private async loadData(): Promise<void> {
-    console.log('ManageReservationsPage: Loading data');
-    try {
-      const authSub = this.authService.getCurrentUser().subscribe({
-        next: async (user) => {
-          console.log('ManageReservationsPage: Auth user loaded:', user);
-          if (user) {
-            this.currentUser = user;
-            await this.loadShopsAndReservations(user.uid);
+  async viewReservationsForMyShops(): Promise<void> {
+    console.log('ManageReservationsPage: Viewing reservations for my shops');
+    this.reservationsSub?.unsubscribe();
+    this.isLoading = true;
+    this.showReservationsModal = true;
+
+    // Use combineLatest to ensure Firebase calls are within injection context
+    this.reservationsSub = combineLatest([
+      this.authService.getCurrentUser(),
+      this.shopService.getAllShops()
+    ]).pipe(
+      switchMap(([user, allShops]: [any, any[]]) => {
+        console.log('ManageReservationsPage: Auth user loaded:', user);
+        if (user) {
+          this.currentUser = user;
+          // Filter shops owned by this user
+          const userShops = allShops.filter((shop: any) => shop.ownerId === user.uid);
+          this.shops = userShops;
+
+          const shopIds = userShops.map((shop: any) => shop.id!);
+          if (shopIds.length > 0) {
+            return this.reservationService.getReservationsByShopIds(shopIds).pipe(
+              map((reservations: any[]) => ({
+                reservations: reservations.sort((a: any, b: any) =>
+                  b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime()
+                ).map((r: any) => ({
+                  ...r,
+                  reservationDate: r.reservationDate.toDate(),
+                  createdAt: r.createdAt.toDate()
+                })),
+                user,
+                shops: userShops
+              }))
+            );
           } else {
-            console.log('ManageReservationsPage: No authenticated user');
-            this.showToast('Please log in to manage reservations');
+            console.log('ManageReservationsPage: No shops found for user');
+            return [{ reservations: [], user, shops: userShops }];
           }
-          this.isLoading = false;
-        },
-        error: (error) => {
-          console.error('ManageReservationsPage: Error getting current user:', error);
-          this.showToast('Authentication error');
-          this.isLoading = false;
+        } else {
+          console.log('ManageReservationsPage: No authenticated user');
+          this.showToast('Please log in to manage reservations');
+          return [{ reservations: [], user: null, shops: [] }];
         }
-      });
-      this.subscriptions.push(authSub);
-    } catch (error) {
-      console.error('ManageReservationsPage: Error in loadData:', error);
-      this.showToast('Error loading data');
-      this.isLoading = false;
+      })
+    ).subscribe({
+      next: (result: any) => {
+        console.log('ManageReservationsPage: Data loaded:', result.reservations.length, 'reservations');
+        this.reservations = result.reservations;
+        this.shops = result.shops;
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: (error: any) => {
+        console.error('ManageReservationsPage: Error loading data:', error);
+        this.showToast('Error loading data');
+        this.isLoading = false;
+        this.showReservationsModal = false;
+      }
+    });
+
+    if (this.reservationsSub) {
+      this.subscriptions.push(this.reservationsSub);
     }
   }
 
-  private async loadShopsAndReservations(userId: string): Promise<void> {
-    console.log('ManageReservationsPage: Loading shops and reservations for user:', userId);
+  closeReservationsModal(): void {
+    this.showReservationsModal = false;
+    this.reservations = [];
+    this.reservationsSub?.unsubscribe();
+  }
 
-    // Load shops owned by this user
-    const shopsSub = this.shopService.getShopsByOwner(userId).subscribe({
+  private loadShops(): void {
+    this.shopsSub = this.shopService.getAllShops().subscribe({
       next: (shops) => {
-        console.log('ManageReservationsPage: Shops loaded:', shops);
         this.shops = shops;
-
-        // Load reservations for all shops owned by this user
-        const shopIds = shops.map(shop => shop.id!);
-        if (shopIds.length > 0) {
-          this.loadReservationsForShops(shopIds);
-        } else {
-          console.log('ManageReservationsPage: No shops found for user');
-          this.reservations = [];
-        }
       },
       error: (error) => {
-        console.error('ManageReservationsPage: Error loading shops:', error);
-        this.showToast('Error loading shops');
+        console.error('Error loading shops:', error);
       }
     });
-    this.subscriptions.push(shopsSub);
+    if (this.shopsSub) {
+      this.subscriptions.push(this.shopsSub);
+    }
   }
 
-  private loadReservationsForShops(shopIds: string[]): void {
-    console.log('ManageReservationsPage: Loading reservations for shops:', shopIds);
 
-    // Use real-time subscription for reservations
-    const reservationsSub = this.reservationService.getReservationsByShopIds(shopIds).subscribe({
-      next: (reservations) => {
-        console.log('ManageReservationsPage: Reservations loaded:', reservations);
-        this.reservations = reservations.sort((a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-      },
-      error: (error) => {
-        console.error('ManageReservationsPage: Error loading reservations:', error);
-        this.showToast('Error loading reservations');
-      }
-    });
-    this.subscriptions.push(reservationsSub);
-  }
 
   async onAcceptReservation(reservation: Reservation): Promise<void> {
     console.log('ManageReservationsPage: Accepting reservation:', reservation.id);
@@ -144,14 +165,35 @@ export class ManageReservationsPage implements OnInit, OnDestroy {
               this.showToast('Reservation accepted successfully');
               console.log('ManageReservationsPage: Reservation accepted:', reservation.id);
 
-              // Show seat/table assignment form
-              this.selectedReservation = reservation;
-              this.showSeatTableForm = true;
-              this.seatTableForm.reset();
+              // Show confirmation for seat/table assignment
+              this.showSeatTableConfirmation(reservation);
             } catch (error) {
               console.error('ManageReservationsPage: Error accepting reservation:', error);
               this.showToast('Error accepting reservation');
             }
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  private async showSeatTableConfirmation(reservation: Reservation): Promise<void> {
+    const alert = await this.alertController.create({
+      header: 'Update Seat and Table',
+      message: 'Update seat and table?',
+      buttons: [
+        {
+          text: 'No',
+          role: 'cancel'
+        },
+        {
+          text: 'Yes',
+          handler: () => {
+            // Show seat/table assignment form
+            this.selectedReservation = reservation;
+            this.showSeatTableForm = true;
+            this.seatTableForm.reset();
           }
         }
       ]
@@ -224,14 +266,79 @@ export class ManageReservationsPage implements OnInit, OnDestroy {
     return shop ? shop.name : 'Unknown Shop';
   }
 
+  canRejectReservation(reservation: Reservation): boolean {
+    // Shop owners can reject reservations at any time
+    return true;
+  }
+
   getStatusColor(status: string): string {
     switch (status) {
       case 'pending': return 'warning';
       case 'accepted': return 'success';
       case 'rejected': return 'danger';
-      case 'cancelled': return 'medium';
+      case 'deleted': return 'medium';
+      case 'done': return 'tertiary';
       default: return 'primary';
     }
+  }
+
+  async onDeleteReservation(reservation: Reservation): Promise<void> {
+    console.log('ManageReservationsPage: Deleting reservation:', reservation.id);
+
+    const alert = await this.alertController.create({
+      header: 'Delete Reservation',
+      message: 'Are you sure you want to delete this reservation? This action cannot be undone.',
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        },
+        {
+          text: 'Delete',
+          role: 'destructive',
+          handler: async () => {
+            try {
+              await this.reservationService.updateReservationStatus(reservation.id!, 'deleted');
+              this.showToast('Reservation deleted successfully');
+              console.log('ManageReservationsPage: Reservation deleted:', reservation.id);
+            } catch (error) {
+              console.error('ManageReservationsPage: Error deleting reservation:', error);
+              this.showToast('Error deleting reservation');
+            }
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  async onMarkDoneReservation(reservation: Reservation): Promise<void> {
+    console.log('ManageReservationsPage: Marking reservation as done:', reservation.id);
+
+    const alert = await this.alertController.create({
+      header: 'Mark Reservation as Done',
+      message: 'Are you sure you want to mark this reservation as done?',
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        },
+        {
+          text: 'Mark Done',
+          handler: async () => {
+            try {
+              await this.reservationService.updateReservationStatus(reservation.id!, 'done');
+              this.showToast('Reservation marked as done');
+              console.log('ManageReservationsPage: Reservation marked as done:', reservation.id);
+            } catch (error) {
+              console.error('ManageReservationsPage: Error marking reservation as done:', error);
+              this.showToast('Error marking reservation as done');
+            }
+          }
+        }
+      ]
+    });
+    await alert.present();
   }
 
   private async showToast(message: string): Promise<void> {

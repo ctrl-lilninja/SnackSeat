@@ -81,6 +81,8 @@
           <ion-input
             type="number"
             formControlName="numberOfPersons"
+            name="numberOfPersons"
+            id="numberOfPersons"
             placeholder="Enter number of persons"
             min="1"
             [max]="shop.availableSeats || 0">
@@ -93,6 +95,8 @@
           <ion-input
             type="number"
             formControlName="numberOfTables"
+            name="numberOfTables"
+            id="numberOfTables"
             placeholder="Enter number of tables"
             min="1"
             [max]="shop.availableTables || 0">
@@ -104,10 +108,17 @@
           <ion-label position="stacked">Special Requests (Optional)</ion-label>
           <ion-textarea
             formControlName="specialRequests"
+            name="specialRequests"
+            id="specialRequests"
             placeholder="Any special requests or notes"
             rows="3">
           </ion-textarea>
         </ion-item>
+
+        <!-- Note about cancellation -->
+        <ion-text color="medium" style="display: block; margin: 16px 0; font-size: 14px;">
+          <p><strong>Note:</strong> You can only cancel your reservation within 10 minutes after booking.</p>
+        </ion-text>
 
         <!-- Submit Button -->
         <ion-button

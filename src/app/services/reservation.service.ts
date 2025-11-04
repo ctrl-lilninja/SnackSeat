@@ -1,4 +1,4 @@
-import { Injectable, inject, NgZone } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {
   Firestore,
   collection,
@@ -13,9 +13,11 @@ import {
   Timestamp,
   getDoc,
   getDocs,
-  runTransaction
+  runTransaction,
+  collectionGroup
 } from '@angular/fire/firestore';
-import { Observable } from 'rxjs';
+import { Observable, combineLatest } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { Reservation, ReservationCreate, ReservationUpdate } from '../models/reservation.model';
 import { getNextDateForWeekday } from '../utils/getNextDateForWeekday';
 
@@ -24,7 +26,6 @@ import { getNextDateForWeekday } from '../utils/getNextDateForWeekday';
 })
 export class ReservationService {
   private firestore = inject(Firestore);
-  private ngZone = inject(NgZone);
 
   // Create a new reservation
   async createReservation(
@@ -32,12 +33,16 @@ export class ReservationService {
     customerId: string,
     customerName: string,
     customerEmail: string,
-    contactNumber: string
+    contactNumber: string,
+    ownerId: string
   ): Promise<string> {
     console.log('Creating reservation with data:', reservationData);
 
     try {
-      const shopDoc = await getDoc(doc(this.firestore, 'shops', reservationData.shopId));
+      // Get shop details from the correct path: shop-owners/{ownerId}/shops/{shopId}
+      const shopDocRef = doc(this.firestore, `shop-owners/${ownerId}/shops/${reservationData.shopId}`);
+      const shopDoc = await getDoc(shopDocRef);
+
       if (!shopDoc.exists()) throw new Error('Shop not found');
 
       const reservationDateTime = new Date(reservationData.date);
@@ -50,6 +55,7 @@ export class ReservationService {
         id: '',
         customerId,
         shopId: reservationData.shopId,
+        ownerId,
         customerName,
         customerEmail,
         contactNumber,
@@ -59,7 +65,7 @@ export class ReservationService {
         status: 'pending',
         message: reservationData.specialRequests,
         weekday: reservationData.weekday,
-        reservationDate: reservationDateTime.toISOString(),
+        reservationDate: Timestamp.fromDate(reservationDateTime),
         createdAt: Timestamp.now(),
         createdBy: customerId,
         archived: false,
@@ -82,14 +88,19 @@ export class ReservationService {
     userId: string,
     customerName: string,
     customerEmail: string,
-    contactNumber: string
+    contactNumber: string,
+    ownerId: string
   ): Promise<string> {
     const reservationRef = doc(collection(this.firestore, 'reservations'));
     const userRef = doc(this.firestore, 'users', userId);
+    const shopRef = doc(this.firestore, `shop-owners/${ownerId}/shops/${reservationData.shopId}`);
 
     await runTransaction(this.firestore, async (transaction) => {
       const userSnap = await transaction.get(userRef);
       if (!userSnap.exists()) throw new Error('User not found');
+
+      const shopSnap = await transaction.get(shopRef);
+      if (!shopSnap.exists()) throw new Error('Shop not found');
 
       const reservationDateTime = new Date(reservationData.date);
       reservationDateTime.setHours(
@@ -101,6 +112,7 @@ export class ReservationService {
         id: '',
         customerId: userId,
         shopId: reservationData.shopId,
+        ownerId,
         customerName,
         customerEmail,
         contactNumber,
@@ -110,7 +122,7 @@ export class ReservationService {
         status: 'pending',
         message: reservationData.specialRequests,
         weekday: reservationData.weekday,
-        reservationDate: reservationDateTime.toISOString(),
+        reservationDate: Timestamp.fromDate(reservationDateTime),
         createdAt: Timestamp.now(),
         createdBy: userId,
         archived: false,
@@ -125,12 +137,18 @@ export class ReservationService {
 
   // Get reservations by user
   getReservationsByUser(userId: string): Observable<Reservation[]> {
+    console.log('ReservationService: Querying reservations for user:', userId);
     const q = query(
       collection(this.firestore, 'reservations'),
       where('customerId', '==', userId),
       orderBy('createdAt', 'desc')
     );
-    return collectionData(q) as Observable<Reservation[]>;
+    return collectionData(q).pipe(
+      map(reservations => {
+        console.log('ReservationService: Retrieved reservations for user:', userId, reservations.length, 'reservations');
+        return reservations;
+      })
+    ) as Observable<Reservation[]>;
   }
 
   // Get reservations by shop
@@ -145,19 +163,44 @@ export class ReservationService {
 
   // Get reservations by multiple shop IDs
   getReservationsByShopIds(shopIds: string[]): Observable<Reservation[]> {
+    console.log('ReservationService: Querying reservations for shop IDs:', shopIds);
     if (shopIds.length === 0) {
+      console.log('ReservationService: No shop IDs provided, returning empty array');
       return new Observable<Reservation[]>((observer) => {
         observer.next([]);
         observer.complete();
       });
     }
 
-    const q = query(
-      collection(this.firestore, 'reservations'),
-      where('shopId', 'in', shopIds.slice(0, 10)), // Firestore 'in' query limited to 10 values
-      orderBy('createdAt', 'desc')
+    // Split shopIds into chunks of 10 for Firestore 'in' query limit
+    const chunks = [];
+    for (let i = 0; i < shopIds.length; i += 10) {
+      chunks.push(shopIds.slice(i, i + 10));
+    }
+
+    const observables = chunks.map(chunk => {
+      console.log('ReservationService: Querying chunk:', chunk);
+      const q = query(
+        collection(this.firestore, 'reservations'),
+        where('shopId', 'in', chunk),
+        orderBy('createdAt', 'desc')
+      );
+      return collectionData(q).pipe(
+        map(reservations => {
+          console.log('ReservationService: Retrieved reservations for chunk:', chunk, reservations.length, 'reservations');
+          return reservations;
+        })
+      ) as Observable<Reservation[]>;
+    });
+
+    return combineLatest(observables).pipe(
+      map(reservationsArrays => {
+        const allReservations = ([] as Reservation[]).concat(...reservationsArrays);
+        console.log('ReservationService: Total reservations retrieved:', allReservations.length);
+        // Sort all combined reservations by createdAt desc
+        return allReservations.sort((a: Reservation, b: Reservation) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+      })
     );
-    return collectionData(q) as Observable<Reservation[]>;
   }
 
   // Get reservation by ID
@@ -182,12 +225,21 @@ export class ReservationService {
   }
 
   // Update reservation status
-  async updateReservationStatus(reservationId: string, status: 'pending' | 'accepted' | 'rejected' | 'cancelled'): Promise<void> {
+  async updateReservationStatus(reservationId: string, status: 'pending' | 'accepted' | 'rejected' | 'deleted' | 'done'): Promise<void> {
+    const reservationDoc = await getDoc(doc(this.firestore, 'reservations', reservationId));
+    if (!reservationDoc.exists()) throw new Error('Reservation not found');
+
+    const reservation = reservationDoc.data() as Reservation;
     const updateData = {
       status,
       updatedAt: Timestamp.now(),
     };
+
+    // Update reservation status
     await updateDoc(doc(this.firestore, 'reservations', reservationId), updateData);
+
+    // Update shop availability based on status change
+    await this.updateShopAvailability(reservation.ownerId, reservation.shopId, reservation.seatsRequested, status);
   }
 
   // Accept reservation (manual assignment)
@@ -199,7 +251,7 @@ export class ReservationService {
     const reservation = reservationDoc.data() as Reservation;
 
     const updateData = {
-      status: 'approved' as const,
+      status: 'accepted' as const,
       confirmedBy,
       acceptanceNotes,
       updatedAt: Timestamp.now(),
@@ -222,10 +274,20 @@ export class ReservationService {
     return new Observable<void>((observer) => {
       (async () => {
         try {
+          // Get reservation details first
+          const reservationDoc = await getDoc(doc(this.firestore, 'reservations', reservationId));
+          if (!reservationDoc.exists()) throw new Error('Reservation not found');
+
+          const reservation = reservationDoc.data() as Reservation;
+
           await updateDoc(doc(this.firestore, 'reservations', reservationId), {
-            status: 'cancelled',
+            status: 'deleted',
             updatedAt: Timestamp.now(),
           });
+
+          // Update shop availability
+          await this.updateShopAvailability(reservation.ownerId, reservation.shopId, reservation.seatsRequested, 'deleted');
+
           observer.next();
           observer.complete();
         } catch (err) {
@@ -261,8 +323,8 @@ export class ReservationService {
     const existingReservations = snapshot.docs.map((doc) => doc.data() as Reservation);
     const conflictingReservations = existingReservations.filter(
       (res) =>
-        new Date(res.reservationDate).toISOString().split('T')[1].substring(0, 5) === reservationTime &&
-        res.status !== 'cancelled'
+        res.reservationDate.toDate().toISOString().split('T')[1].substring(0, 5) === reservationTime &&
+        res.status !== 'deleted'
     );
 
     const usedTableNumbers = conflictingReservations.map((res) => res.tableNumber);
@@ -270,5 +332,41 @@ export class ReservationService {
     while (usedTableNumbers.includes(tableNumber)) tableNumber++;
 
     return { seatNumber: 1, tableNumber };
+  }
+
+  // Update shop availability based on reservation status changes
+  private async updateShopAvailability(ownerId: string, shopId: string, seatsRequested: number, status: string): Promise<void> {
+    const shopRef = doc(this.firestore, `shop-owners/${ownerId}/shops/${shopId}`);
+    const shopDoc = await getDoc(shopRef);
+
+    if (!shopDoc.exists()) {
+      console.error('Shop not found for availability update');
+      return;
+    }
+
+    const shop = shopDoc.data() as any;
+    let availableSeats = shop.availableSeats || shop.totalSeats;
+    let availableTables = shop.availableTables || shop.totalTables;
+
+    // Adjust available seats and tables based on status
+    if (status === 'accepted') {
+      availableSeats -= seatsRequested;
+      availableTables -= 1; // Assuming 1 table per reservation
+    } else if (status === 'rejected' || status === 'deleted') {
+      availableSeats += seatsRequested;
+      availableTables += 1; // Restore table availability
+    }
+
+    // Ensure availableSeats and availableTables don't go below 0 or above total
+    availableSeats = Math.max(0, Math.min(availableSeats, shop.totalSeats));
+    availableTables = Math.max(0, Math.min(availableTables, shop.totalTables));
+
+    await updateDoc(shopRef, {
+      availableSeats,
+      availableTables,
+      updatedAt: Timestamp.now()
+    });
+
+    console.log(`Updated shop ${shopId} availability: ${availableSeats} seats, ${availableTables} tables available`);
   }
 }

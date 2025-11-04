@@ -1,5 +1,13 @@
-# TODO: Update README.md with Installation Instructions
-
-- [x] Update the "Install Dependencies" section in README.md to list all installed packages from package.json, grouped by category (Angular, Ionic, Firebase, Capacitor, etc.) for clarity.
-- [x] Consolidate installation steps by removing redundant separate install commands for Firebase and GPS plugins, as npm install covers them.
-- [x] Ensure the updated section is comprehensive and informative for collaborators.
+- [ ] Add edit shop functionality to manage-shop.page.ts
+  - [ ] Add isEditing, editingShop, editShopForm properties
+  - [ ] Initialize editShopForm with all Shop fields including openDays
+  - [ ] Implement editShop(shop) method to pre-fill form and open modal
+  - [ ] Implement updateShop() method to save changes
+  - [ ] Handle openDays as nested FormGroup
+- [ ] Update manage-shop.page.html
+  - [ ] Add edit modal with form fields for all shop details
+  - [ ] Include open days selection with checkboxes and time inputs
+  - [ ] Add map for location editing
+- [ ] Test edit functionality
+  - [ ] Ensure data saves to Firebase correctly
+  - [ ] Verify open days are editable and displayed properly

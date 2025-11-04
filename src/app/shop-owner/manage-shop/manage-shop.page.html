@@ -12,7 +12,7 @@
   </ion-header>
 
   <!-- Create Shop Button if no shop exists -->
-  <div *ngIf="!shop" class="create-shop-container">
+  <div *ngIf="!shopOwner" class="create-shop-container">
     <ion-button expand="block" size="large" color="primary" (click)="showCreateModal()">
       <ion-icon name="add-circle" slot="start"></ion-icon>
       ➕ Create Shop
@@ -50,7 +50,7 @@
           <ion-icon name="create" slot="icon-only"></ion-icon>
         </ion-button>
       </p>
-      <p><strong>Status:</strong> {{ shopOwner.isOpen ? 'Open' : 'Closed' }}</p>
+      <p><strong>Status:</strong> {{ getShopStatus(shopOwner) ? 'Open' : 'Closed' }}</p>
     </ion-card-content>
   </ion-card>
 
@@ -73,10 +73,14 @@
           <ion-card-content>
             <p><strong>Description:</strong> {{ shop.description }}</p>
             <p><strong>Available Seats:</strong> {{ shop.availableSeats }}</p>
-            <p><strong>Status:</strong> {{ shop.isOpen ? 'Open' : 'Closed' }}</p>
+            <p><strong>Status:</strong> {{ getShopStatus(shop) ? 'Open' : 'Closed' }}</p>
             <p><strong>Opening Time:</strong> {{ shop.openingTime }}</p>
             <p><strong>Closing Time:</strong> {{ shop.closingTime }}</p>
             <p><strong>Reservation Date:</strong> {{ shop.reservationDate }}</p>
+            <ion-button fill="outline" color="primary" (click)="editShop(shop)">
+              <ion-icon name="create" slot="start"></ion-icon>
+              Edit
+            </ion-button>
             <ion-button fill="outline" color="danger" (click)="removeShop(shop)">
               <ion-icon name="trash" slot="start"></ion-icon>
               Remove
@@ -114,39 +118,39 @@
             <ion-card-content>
               <ion-item>
                 <ion-label position="stacked">Shop Name *</ion-label>
-                <ion-input formControlName="shopName" placeholder="Enter shop name"></ion-input>
+                <ion-input formControlName="shopName" name="shopName" id="shopName" placeholder="Enter shop name"></ion-input>
               </ion-item>
 
               <ion-item>
                 <ion-label position="stacked">Contact Email *</ion-label>
-                <ion-input formControlName="email" type="email" placeholder="Enter email"></ion-input>
+                <ion-input formControlName="email" name="email" id="email" type="email" placeholder="Enter email"></ion-input>
               </ion-item>
 
               <ion-item>
                 <ion-label position="stacked">Contact Number *</ion-label>
-                <ion-input formControlName="contactNumber" placeholder="Enter phone number"></ion-input>
+                <ion-input formControlName="contactNumber" name="contactNumber" id="contactNumber" placeholder="Enter phone number"></ion-input>
               </ion-item>
 
               <ion-item>
                 <ion-label position="stacked">Description *</ion-label>
-                <ion-textarea formControlName="description" placeholder="Describe your shop"></ion-textarea>
+                <ion-textarea formControlName="description" name="description" id="description" placeholder="Describe your shop"></ion-textarea>
               </ion-item>
 
               <ion-item>
                 <ion-label position="stacked">Category *</ion-label>
-                <ion-select formControlName="category" placeholder="Select category">
+                <ion-select formControlName="category" name="category" id="category" placeholder="Select category">
                   <ion-select-option *ngFor="let cat of categories" [value]="cat">{{cat}}</ion-select-option>
                 </ion-select>
               </ion-item>
 
               <ion-item>
                 <ion-label position="stacked">Total Seats *</ion-label>
-                <ion-input formControlName="seats" type="number" min="1"></ion-input>
+                <ion-input formControlName="seats" name="seats" id="seats" type="number" min="1"></ion-input>
               </ion-item>
 
               <ion-item>
                 <ion-label position="stacked">Available Seats *</ion-label>
-                <ion-input formControlName="availableSeats" type="number" min="0"></ion-input>
+                <ion-input formControlName="availableSeats" name="availableSeats" id="availableSeats" type="number" min="0"></ion-input>
               </ion-item>
 
               <ion-item>
@@ -180,12 +184,12 @@
 
               <ion-item>
                 <ion-label position="stacked">Latitude</ion-label>
-                <ion-input formControlName="location.lat" type="number" step="0.000001"></ion-input>
+                <ion-input formControlName="location.lat" name="location.lat" id="location.lat" type="number" step="0.000001"></ion-input>
               </ion-item>
 
               <ion-item>
                 <ion-label position="stacked">Longitude</ion-label>
-                <ion-input formControlName="location.lng" type="number" step="0.000001"></ion-input>
+                <ion-input formControlName="location.lng" name="location.lng" id="location.lng" type="number" step="0.000001"></ion-input>
               </ion-item>
 
               <ion-button expand="block" (click)="saveLocation()" color="secondary">
@@ -204,51 +208,133 @@
     </ng-template>
   </ion-modal>
 
-  <!-- Customer Reservations -->
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>Customer Reservations</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <ion-accordion-group>
-        <ion-accordion *ngFor="let reservation of reservations" [value]="reservation.id">
-          <ion-item slot="header">
-            <ion-label>
-              <h2>{{reservation.customerName}}</h2>
-              <p>{{reservation.reservationDate}} at {{reservation.reservationTime}}</p>
-              <p>Seats: {{reservation.numberOfSeats}} | Status: {{reservation.status}}</p>
-            </ion-label>
-          </ion-item>
-          <div slot="content">
-            <ion-item>
-              <ion-label>
-                <p><strong>Email:</strong> {{reservation.customerEmail}}</p>
-                <p><strong>Phone:</strong> {{reservation.contactNumber}}</p>
-              </ion-label>
-            </ion-item>
-            <ion-button
-              *ngIf="reservation.status === 'pending'"
-              fill="outline"
-              color="success"
-              (click)="acceptReservation(reservation)">
-              <ion-icon name="checkmark" slot="start"></ion-icon>
-              Accept
-            </ion-button>
-            <ion-button
-              *ngIf="reservation.status === 'pending' || reservation.status === 'approved'"
-              fill="outline"
-              color="danger"
-              (click)="cancelReservation(reservation)">
-              <ion-icon name="close" slot="start"></ion-icon>
-              Cancel
-            </ion-button>
-          </div>
-        </ion-accordion>
-      </ion-accordion-group>
+  <!-- Edit Shop Modal -->
+  <ion-modal [isOpen]="isEditing" (willDismiss)="isEditing = false">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Edit Shop</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="isEditing = false">Close</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content>
+        <form [formGroup]="editShopForm" (ngSubmit)="updateShop()">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Shop Details</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-item>
+                <ion-label position="stacked">Shop Name *</ion-label>
+                <ion-input formControlName="name" placeholder="Enter shop name"></ion-input>
+              </ion-item>
 
-      <ion-item *ngIf="reservations.length === 0">
-        <ion-label>No reservations yet.</ion-label>
-      </ion-item>
-    </ion-card-content>
-  </ion-card>
+              <ion-item>
+                <ion-label position="stacked">Description *</ion-label>
+                <ion-textarea formControlName="description" placeholder="Describe your shop"></ion-textarea>
+              </ion-item>
+
+              <ion-item>
+                <ion-label position="stacked">Category *</ion-label>
+                <ion-select formControlName="category" placeholder="Select category">
+                  <ion-select-option *ngFor="let cat of categories" [value]="cat">{{cat}}</ion-select-option>
+                </ion-select>
+              </ion-item>
+
+              <ion-item>
+                <ion-label position="stacked">Phone *</ion-label>
+                <ion-input formControlName="phone" placeholder="Enter phone number"></ion-input>
+              </ion-item>
+
+              <ion-item>
+                <ion-label position="stacked">Email *</ion-label>
+                <ion-input formControlName="email" type="email" placeholder="Enter email"></ion-input>
+              </ion-item>
+
+              <ion-item>
+                <ion-label position="stacked">Address *</ion-label>
+                <ion-textarea formControlName="address" placeholder="Enter address"></ion-textarea>
+              </ion-item>
+
+              <ion-item>
+                <ion-label position="stacked">Total Seats *</ion-label>
+                <ion-input formControlName="totalSeats" type="number" min="1"></ion-input>
+              </ion-item>
+
+              <ion-item>
+                <ion-label position="stacked">Available Seats *</ion-label>
+                <ion-input formControlName="availableSeats" type="number" min="0"></ion-input>
+              </ion-item>
+
+              <ion-item>
+                <ion-label position="stacked">Opening Time *</ion-label>
+                <ion-datetime formControlName="openingTime" display-format="HH:mm" picker-format="HH:mm"></ion-datetime>
+              </ion-item>
+
+              <ion-item>
+                <ion-label position="stacked">Closing Time *</ion-label>
+                <ion-datetime formControlName="closingTime" display-format="HH:mm" picker-format="HH:mm"></ion-datetime>
+              </ion-item>
+
+              <ion-item>
+                <ion-label position="stacked">Timezone *</ion-label>
+                <ion-input formControlName="timezone" placeholder="e.g., Asia/Manila"></ion-input>
+              </ion-item>
+
+              <ion-item>
+                <ion-label>Shop Status</ion-label>
+                <ion-toggle formControlName="isOpen" slot="end"></ion-toggle>
+              </ion-item>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Operating Days</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-item *ngFor="let day of ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']">
+                <ion-label>{{ day.charAt(0).toUpperCase() + day.slice(1) }}</ion-label>
+                <ion-toggle [formControl]="$any(editShopForm.get('openDays.' + day + '.enabled'))" slot="end"></ion-toggle>
+              </ion-item>
+
+              <div *ngFor="let day of ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']" [formGroup]="$any(editShopForm.get('openDays.' + day))">
+                <ion-item *ngIf="$any(editShopForm.get('openDays.' + day + '.enabled'))?.value">
+                  <ion-label position="stacked">{{ day.charAt(0).toUpperCase() + day.slice(1) }} Hours</ion-label>
+                  <ion-input formControlName="open" placeholder="Open time (HH:mm)" style="margin-right: 10px;"></ion-input>
+                  <ion-input formControlName="close" placeholder="Close time (HH:mm)"></ion-input>
+                </ion-item>
+              </div>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Location</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-item>
+                <ion-label position="stacked">Latitude *</ion-label>
+                <ion-input formControlName="latitude" type="number" step="0.000001"></ion-input>
+              </ion-item>
+
+              <ion-item>
+                <ion-label position="stacked">Longitude *</ion-label>
+                <ion-input formControlName="longitude" type="number" step="0.000001"></ion-input>
+              </ion-item>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-button expand="block" type="submit" [disabled]="editShopForm.invalid || isLoading">
+            <ion-icon name="save" slot="start"></ion-icon>
+            Update Shop
+          </ion-button>
+        </form>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+
 </ion-content>

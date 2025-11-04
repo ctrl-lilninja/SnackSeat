@@ -1,8 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ToastController, AlertController } from '@ionic/angular';
-import { Subscription } from 'rxjs';
+import { ToastController } from '@ionic/angular';
+import { Subscription, firstValueFrom } from 'rxjs';
 import { ShopService } from '../../services/shop.service';
 import { ReservationService } from '../../services/reservation.service';
 import { AuthService } from '../../services/auth.service';
@@ -32,8 +32,7 @@ export class MakeReservationPage implements OnInit, OnDestroy {
     private shopService: ShopService,
     private reservationService: ReservationService,
     private authService: AuthService,
-    private toastController: ToastController,
-    private alertController: AlertController
+    private toastController: ToastController
   ) {
     // Set min date to today, max date to 30 days from now
     const today = new Date();
@@ -46,27 +45,7 @@ export class MakeReservationPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.initializeForm();
-    // Subscribe to auth state and only load shop details if user is authenticated
-    console.log('MakeReservationPage: Subscribing to auth state...');
-    const authSub = this.authService.getCurrentUser().subscribe({
-      next: (user) => {
-        console.log('MakeReservationPage: Auth state changed, user:', user ? user.uid : 'null');
-        if (user) {
-          console.log('MakeReservationPage: User authenticated, loading shop details...');
-          this.loadShopDetails();
-        } else {
-          console.log('MakeReservationPage: No authenticated user, skipping shop details load');
-          this.errorMessage = 'Please log in to make a reservation';
-          this.isLoading = false;
-        }
-      },
-      error: (error) => {
-        console.error('MakeReservationPage: Error getting auth state:', error);
-        this.errorMessage = 'Authentication error';
-        this.isLoading = false;
-      }
-    });
-    this.subscriptions.push(authSub);
+    this.loadData();
   }
 
   ngOnDestroy(): void {
@@ -80,6 +59,27 @@ export class MakeReservationPage implements OnInit, OnDestroy {
       numberOfTables: [1, [Validators.required, Validators.min(1)]],
       specialRequests: ['']
     });
+  }
+
+  private async loadData(): Promise<void> {
+    try {
+      // Get current user safely using firstValueFrom
+      const currentUser = await firstValueFrom(this.authService.getCurrentUser());
+      console.log('MakeReservationPage: Current user:', currentUser);
+
+      if (!currentUser) {
+        this.errorMessage = 'Please log in to make a reservation';
+        this.isLoading = false;
+        return;
+      }
+
+      // Load shop details
+      await this.loadShopDetails();
+    } catch (error) {
+      console.error('MakeReservationPage: Error loading data:', error);
+      this.errorMessage = 'Authentication error';
+      this.isLoading = false;
+    }
   }
 
   private async loadShopDetails(): Promise<void> {
@@ -97,27 +97,15 @@ export class MakeReservationPage implements OnInit, OnDestroy {
         next: (shop) => {
           if (shop) {
             this.shop = shop;
-            // Update max persons validator based on available seats
-            this.reservationForm.get('numberOfPersons')?.setValidators([
-              Validators.required,
-              Validators.min(1),
-              Validators.max(shop.availableSeats)
-            ]);
-            this.reservationForm.get('numberOfPersons')?.updateValueAndValidity();
-            // Update max tables validator based on available tables
-            this.reservationForm.get('numberOfTables')?.setValidators([
-              Validators.required,
-              Validators.min(1),
-              Validators.max(shop.availableTables)
-            ]);
-            this.reservationForm.get('numberOfTables')?.updateValueAndValidity();
+            // Update validators based on available seats and tables
+            this.updateFormValidators(shop);
           } else {
             this.errorMessage = 'Shop not found';
           }
           this.isLoading = false;
         },
         error: (error) => {
-          console.error('Error loading shop:', error);
+          console.error('MakeReservationPage: Error loading shop:', error);
           this.errorMessage = 'Error loading shop details';
           this.isLoading = false;
         }
@@ -125,10 +113,28 @@ export class MakeReservationPage implements OnInit, OnDestroy {
 
       this.subscriptions.push(shopSub);
     } catch (error) {
-      console.error('Error in loadShopDetails:', error);
+      console.error('MakeReservationPage: Error in loadShopDetails:', error);
       this.errorMessage = 'Error loading shop details';
       this.isLoading = false;
     }
+  }
+
+  private updateFormValidators(shop: Shop): void {
+    // Update max persons validator based on available seats
+    this.reservationForm.get('numberOfPersons')?.setValidators([
+      Validators.required,
+      Validators.min(1),
+      Validators.max(shop.availableSeats)
+    ]);
+    this.reservationForm.get('numberOfPersons')?.updateValueAndValidity();
+
+    // Update max tables validator based on available tables
+    this.reservationForm.get('numberOfTables')?.setValidators([
+      Validators.required,
+      Validators.min(1),
+      Validators.max(shop.availableTables)
+    ]);
+    this.reservationForm.get('numberOfTables')?.updateValueAndValidity();
   }
 
   async onSubmit(): Promise<void> {
@@ -141,25 +147,24 @@ export class MakeReservationPage implements OnInit, OnDestroy {
     this.errorMessage = '';
 
     try {
-      console.log('Starting reservation creation...');
-      const formValue = this.reservationForm.value;
-      console.log('Form value:', formValue);
+      console.log('MakeReservationPage: Starting reservation creation...');
 
-      const currentUser = await this.authService.getCurrentUser().toPromise();
-      console.log('Current user:', currentUser);
+      // Get current user
+      const currentUser = await firstValueFrom(this.authService.getCurrentUser());
+      console.log('MakeReservationPage: Current user:', currentUser);
 
       if (!currentUser) {
         throw new Error('User not authenticated. Please log in again.');
       }
 
+      const formValue = this.reservationForm.value;
+      console.log('MakeReservationPage: Form value:', formValue);
+
       // Parse datetime value
       const selectedDateTime = new Date(formValue.datetime);
       const date = selectedDateTime.toISOString().split('T')[0];
       const time = selectedDateTime.toTimeString().split(' ')[0].substring(0, 5); // HH:MM format
-      console.log('Parsed date and time:', date, time);
-
-      // Seat and table assignment will happen only after shop owner accepts the reservation
-      console.log('Creating reservation without seat/table assignment - will be assigned upon acceptance');
+      console.log('MakeReservationPage: Parsed date and time:', date, time);
 
       const reservationData: ReservationCreate = {
         shopId: this.shop.id!,
@@ -167,45 +172,35 @@ export class MakeReservationPage implements OnInit, OnDestroy {
         weekday: this.getWeekdayFromDate(date),
         date: new Date(date),
         time: time,
-        tableNumber: null, // Will be assigned later
+        tableNumber: null, // Will be assigned later by shop owner
         seatsRequested: formValue.numberOfPersons,
         numberOfTables: formValue.numberOfTables,
         specialRequests: formValue.specialRequests
       };
-      console.log('Reservation data:', reservationData);
+      console.log('MakeReservationPage: Reservation data:', reservationData);
 
-      // Create reservation using the updated async method
-      console.log('Calling reservation service...');
+      // Create reservation
+      const ownerId = this.route.snapshot.queryParams['ownerId'];
       const reservationId = await this.reservationService.createReservation(
         reservationData,
         currentUser.uid,
         currentUser.displayName || 'Customer',
         currentUser.email || '',
-        this.shop.phone || ''
+        this.shop.phone || '',
+        ownerId
       );
-      console.log('Reservation created with ID:', reservationId);
+      console.log('MakeReservationPage: Reservation created with ID:', reservationId);
 
-      await this.showSuccessToast('Reservation created successfully!');
+      await this.showToast('Reservation created successfully!', 'success');
       this.router.navigate(['/customer/browse-shops']);
 
     } catch (error: any) {
-      console.error('Error creating reservation:', error);
+      console.error('MakeReservationPage: Error creating reservation:', error);
       this.errorMessage = error.message || 'An unexpected error occurred while creating the reservation. Please try again.';
-      await this.showErrorToast(this.errorMessage);
+      await this.showToast(this.errorMessage, 'danger');
     } finally {
       this.isSubmitting = false;
     }
-  }
-
-  private async autoAssignSeatAndTable(shop: Shop, numberOfSeats: number): Promise<{ seatNumber: number, tableNumber: number }> {
-    // Simple auto-assignment logic - in a real app, this would be more sophisticated
-    // For now, assign to the first available table/seat combination
-    const availableSeats = shop.availableSeats ?? 0;
-    const availableTables = shop.availableTables ?? 0;
-    const seatNumber = Math.floor(Math.random() * availableSeats) + 1;
-    const tableNumber = Math.floor(Math.random() * availableTables) + 1;
-
-    return { seatNumber, tableNumber };
   }
 
   private getWeekdayFromDate(dateString: string): string {
@@ -214,38 +209,12 @@ export class MakeReservationPage implements OnInit, OnDestroy {
     return weekdays[date.getDay()];
   }
 
-  private async createReservationWithAtomicUpdate(
-    reservationData: ReservationCreate,
-    userId: string,
-    customerName: string,
-    customerEmail: string
-  ): Promise<string> {
-    // Use the atomic update method from reservation service
-    return await this.reservationService.createReservationWithAtomicUpdate(
-      reservationData,
-      userId,
-      customerName,
-      customerEmail,
-      this.shop!.phone || '' // Using shop phone as contact number
-    );
-  }
-
-  private async showSuccessToast(message: string): Promise<void> {
+  private async showToast(message: string, color: 'success' | 'danger' = 'success'): Promise<void> {
     const toast = await this.toastController.create({
       message: message,
       duration: 3000,
       position: 'top',
-      color: 'success'
-    });
-    await toast.present();
-  }
-
-  private async showErrorToast(message: string): Promise<void> {
-    const toast = await this.toastController.create({
-      message: message,
-      duration: 3000,
-      position: 'top',
-      color: 'danger'
+      color: color
     });
     await toast.present();
   }
@@ -264,7 +233,7 @@ export class MakeReservationPage implements OnInit, OnDestroy {
       return { timeOutsideHours: true };
     }
 
-    // Check if shop is open on the selected date and time using ShopService
+    // Check if shop is open on the selected date and time
     const shopStatus = this.shopService.getShopStatus(this.shop);
     if (!shopStatus.isOpen) {
       return { shopClosed: true };

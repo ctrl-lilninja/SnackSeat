@@ -5,7 +5,7 @@ import { Browser } from '@capacitor/browser';
 import { ShopService } from '../../services/shop.service';
 import { AuthService } from '../../services/auth.service';
 import { ReservationService } from '../../services/reservation.service';
-import { Shop } from '../../models/shop.model';
+import { Shop, OpenDays } from '../../models/shop.model';
 import { ReservationCreate } from '../../models/reservation.model';
 
 @Component({
@@ -35,7 +35,19 @@ export class BrowseShopsPage implements OnInit {
   loadShops() {
     this.shopService.getAllShops().subscribe({
       next: (shops) => {
-        this.shops = shops;
+        // Calculate real-time status for each shop
+        this.shops = shops.map(shop => {
+          const status = this.shopService.getShopStatus(shop);
+          return {
+            ...shop,
+            isOpen: status.isOpen,
+            availableSeats: status.availableSeats,
+            availableTables: Math.floor(status.availableSeats / 4), // Assuming 4 seats per table
+            openingTime: shop.openDays[this.getCurrentWeekday()]?.open || 'N/A',
+            closingTime: shop.openDays[this.getCurrentWeekday()]?.close || 'N/A',
+            reservationDate: new Date().toISOString().split('T')[0] // Today's date
+          };
+        });
         this.isLoading = false;
       },
       error: (error) => {
@@ -44,6 +56,12 @@ export class BrowseShopsPage implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  private getCurrentWeekday(): keyof OpenDays {
+    const weekdays: (keyof OpenDays)[] = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const today = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
+    return weekdays[today];
   }
 
   async doRefresh(event: RefresherCustomEvent) {

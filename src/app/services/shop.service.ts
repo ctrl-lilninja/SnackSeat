@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Firestore } from '@angular/fire/firestore';
 import { collection, collectionData, doc, docData, setDoc, updateDoc, deleteDoc, addDoc, query, where, onSnapshot, collectionGroup, runTransaction } from '@angular/fire/firestore';
 import { Observable, from, map } from 'rxjs';
@@ -10,7 +10,7 @@ import { DateTime } from 'luxon';
   providedIn: 'root'
 })
 export class ShopService {
-  private firestore = inject(Firestore);
+  constructor(private firestore: Firestore) {}
 
   // Create a new shop under shop-owners/{uid}/shops
   createShop(shopData: ShopCreate, ownerId: string): Observable<string> {
@@ -40,7 +40,17 @@ export class ShopService {
 
   // Get shop by ID from shop-owners/{uid}/shops/{shopId}
   getShopById(ownerId: string, shopId: string): Observable<Shop | undefined> {
-    return docData(doc(this.firestore, `shop-owners/${ownerId}/shops/${shopId}`)) as Observable<Shop | undefined>;
+    return docData(doc(this.firestore, `shop-owners/${ownerId}/shops/${shopId}`)).pipe(
+      map(shop => {
+        if (shop) {
+          const s = shop as Shop;
+          s.availableSeats = s.availableSeats || s.totalSeats;
+          s.availableTables = s.availableTables || s.totalTables;
+          return s;
+        }
+        return shop as Shop | undefined;
+      })
+    );
   }
 
   // Get shops by owner with real-time listener
@@ -154,9 +164,9 @@ export class ShopService {
       isOpen = currentTime >= openTime && currentTime <= closeTime;
     }
 
-    // Calculate capacity
-    const totalSeats = shop.tables.reduce((sum, table) => sum + table.seats, 0);
-    const availableSeats = shop.tables.reduce((sum, table) => sum + table.availableSeats, 0);
+    // Use stored availableSeats and totalSeats
+    const totalSeats = shop.totalSeats || shop.tables.reduce((sum, table) => sum + table.seats, 0);
+    const availableSeats = shop.availableSeats !== undefined ? shop.availableSeats : shop.tables.reduce((sum, table) => sum + table.availableSeats, 0);
     let capacityColor = 'success'; // green
     if (availableSeats === 0) {
       capacityColor = 'danger'; // red

@@ -21,32 +21,32 @@
       <form (ngSubmit)="onSignup()">
         <ion-item>
           <ion-label position="floating">Username</ion-label>
-          <ion-input [(ngModel)]="signupData.username" name="username" required></ion-input>
+          <ion-input [(ngModel)]="signupData.username" name="username" id="username" required></ion-input>
         </ion-item>
 
         <ion-item>
           <ion-label position="floating">Display Name</ion-label>
-          <ion-input [(ngModel)]="signupData.displayName" name="displayName" required></ion-input>
+          <ion-input [(ngModel)]="signupData.displayName" name="displayName" id="displayName" required></ion-input>
         </ion-item>
 
         <ion-item>
           <ion-label position="floating">Email</ion-label>
-          <ion-input type="email" [(ngModel)]="signupData.email" name="email" required></ion-input>
+          <ion-input type="email" [(ngModel)]="signupData.email" name="email" id="email" required></ion-input>
         </ion-item>
 
         <ion-item>
           <ion-label position="floating">Password</ion-label>
-          <ion-input type="password" [(ngModel)]="signupData.password" name="password" required></ion-input>
+          <ion-input type="password" [(ngModel)]="signupData.password" name="password" id="password" required></ion-input>
         </ion-item>
 
         <ion-item>
           <ion-label position="floating">Confirm Password</ion-label>
-          <ion-input type="password" [(ngModel)]="signupData.confirmPassword" name="confirmPassword" required></ion-input>
+          <ion-input type="password" [(ngModel)]="signupData.confirmPassword" name="confirmPassword" id="confirmPassword" required></ion-input>
         </ion-item>
 
         <ion-item>
           <ion-label>Role</ion-label>
-          <ion-select [(ngModel)]="signupData.role" name="role" placeholder="Select your role" required>
+          <ion-select [(ngModel)]="signupData.role" name="role" id="role" placeholder="Select your role" required>
             <ion-select-option value="customer">Customer</ion-select-option>
             <ion-select-option value="shop-owner">Shop Owner</ion-select-option>
           </ion-select>

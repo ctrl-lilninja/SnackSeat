@@ -35,10 +35,10 @@ npm install -g @ionic/cli
 ```
 
 ## 🔥 **Firebase Setup**
-1. Go to https://console.firebase.google.com  
-2. Create a Firebase project  
-3. Add a **Web App** and copy your Firebase configuration  
-4. Create a file: `src/environments/environment.ts`  
+1. Go to https://console.firebase.google.com
+2. Create a Firebase project
+3. Add a **Web App** and copy your Firebase configuration
+4. Create a file: `src/environments/environment.ts`
 5. Paste this:
 export const environment = {
   production: false,
@@ -51,6 +51,17 @@ export const environment = {
     appId: "YOUR_APP_ID"
   }
 };
+
+### 6️⃣ **Deploy Firestore Indexes and Rules**
+The project requires specific Firestore indexes and security rules. These are defined in the `firestore.indexes.json` and `firestore.rules` files in the root directory.
+
+To deploy them, run the following commands:
+```
+firebase deploy --only firestore:indexes
+firebase deploy --only firestore:rules
+```
+
+Make sure you have the Firebase CLI installed and are logged in to your Firebase account.
 
 ## 📍 **GPS / Geolocation Setup**
 The GPS/Geolocation plugins are already included in the dependencies above. After installing dependencies, sync the native code:

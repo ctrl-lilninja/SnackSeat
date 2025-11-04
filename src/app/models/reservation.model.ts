@@ -1,20 +1,23 @@
+import { Timestamp } from '@angular/fire/firestore';
+
 export interface Reservation {
   id: string;
-  shopId: string;
   customerId: string;
+  shopId: string;
+  ownerId: string;
   customerName: string;
   customerEmail: string;
-  contactNumber: string;
-  tableNumber: number | null;
-  seatNumber: number | null;
+  contactNumber?: string;
+  tableNumber?: number | null;
+  seatNumber?: number | null;
   seatsRequested: number;
-  message?: string;
-  weekday: string;
-  reservationDate: string; // ISO format
-  status: 'pending' | 'approved' | 'confirmed' | 'rejected' | 'done' | 'cancelled';
-  createdAt: any;
-  createdBy: string;
-  archived: boolean;
+  status: 'pending' | 'accepted' | 'rejected' | 'deleted' | 'done';
+  message?: string | null;
+  weekday?: string;
+  reservationDate: Timestamp;
+  createdAt: Timestamp;
+  createdBy?: string;
+  archived?: boolean;
 }
 
 export interface ReservationCreate {
@@ -30,6 +33,6 @@ export interface ReservationCreate {
 }
 
 export interface ReservationUpdate {
-  status?: 'pending' | 'approved' | 'confirmed' | 'rejected' | 'done' | 'cancelled';
+  status?: 'pending' | 'accepted' | 'rejected' | 'deleted' | 'done';
   archived?: boolean;
 }

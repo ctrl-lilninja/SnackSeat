@@ -24,6 +24,11 @@ const routes: Routes = [
     canActivate: [AdminGuard]
   },
   {
+    path: 'customer',
+    loadChildren: () => import('./customer/customer.module').then( m => m.CustomerPageModule),
+    canActivate: [CustomerGuard]
+  },
+  {
     path: 'customer/browse-shops',
     loadChildren: () => import('./customer/browse-shops/browse-shops.module').then( m => m.BrowseShopsPageModule),
     canActivate: [CustomerGuard]
@@ -39,7 +44,7 @@ const routes: Routes = [
     canActivate: [ShopOwnerGuard]
   },
   {
-    path: 'shop-owner/manage-shop',
+    path: 'shop-owner',
     loadChildren: () => import('./shop-owner/shop-owner.module').then( m => m.ShopOwnerPageModule),
     canActivate: [ShopOwnerGuard]
   },
@@ -54,6 +59,11 @@ const routes: Routes = [
   {
     path: 'manage-reservations',
     loadChildren: () => import('./manage-reservations/manage-reservations.module').then( m => m.ManageReservationsPageModule),
+    canActivate: [ShopOwnerGuard]
+  },
+  {
+    path: 'manage-shop',
+    loadChildren: () => import('./shop-owner/manage-shop/manage-shop.module').then( m => m.ManageShopPageModule),
     canActivate: [ShopOwnerGuard]
   },
 

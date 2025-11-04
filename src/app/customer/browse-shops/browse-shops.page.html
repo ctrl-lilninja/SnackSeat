@@ -25,6 +25,16 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
+  <!-- My Reservations Button -->
+  <ion-card>
+    <ion-card-content>
+      <ion-button fill="solid" routerLink="/my-reservations" expand="block">
+        <ion-icon name="list-outline" slot="start"></ion-icon>
+        My Reservations
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+
   <ion-card *ngIf="isLoading">
     <ion-card-content>
       <ion-spinner name="crescent"></ion-spinner>

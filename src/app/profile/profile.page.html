@@ -34,6 +34,8 @@
           <ion-label position="stacked">Display Name</ion-label>
           <ion-input
             formControlName="displayName"
+            name="displayName"
+            id="displayName"
             placeholder="Enter your display name"
             [counter]="true"
             maxlength="50">
@@ -45,6 +47,8 @@
           <ion-label position="stacked">Email</ion-label>
           <ion-input
             formControlName="email"
+            name="email"
+            id="email"
             type="email"
             placeholder="Enter your email"
             [counter]="true"
@@ -57,6 +61,8 @@
           <ion-label position="stacked">Current Password (required for password change)</ion-label>
           <ion-input
             formControlName="currentPassword"
+            name="currentPassword"
+            id="currentPassword"
             type="password"
             placeholder="Enter current password">
           </ion-input>
@@ -67,6 +73,8 @@
           <ion-label position="stacked">New Password (optional)</ion-label>
           <ion-input
             formControlName="newPassword"
+            name="newPassword"
+            id="newPassword"
             type="password"
             placeholder="Enter new password"
             [counter]="true"
@@ -79,6 +87,8 @@
           <ion-label position="stacked">Confirm New Password</ion-label>
           <ion-input
             formControlName="confirmPassword"
+            name="confirmPassword"
+            id="confirmPassword"
             type="password"
             placeholder="Confirm new password">
           </ion-input>

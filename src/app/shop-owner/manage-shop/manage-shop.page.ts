@@ -3,11 +3,8 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { LoadingController, ToastController, AlertController, ModalController } from '@ionic/angular';
 import { AuthService } from '../../services/auth.service';
 import { ShopService } from '../../services/shop.service';
-import { ReservationService } from '../../services/reservation.service';
-import { LocationService } from '../../services/location.service';
 import { ShopOwner, ShopOwnerCreate } from '../../models/shop-owner.model';
 import { Shop } from '../../models/shop.model';
-import { Reservation } from '../../models/reservation.model';
 import { Subscription } from 'rxjs';
 
 declare let L: any; // Leaflet global
@@ -22,10 +19,13 @@ export class ManageShopPage implements OnInit, OnDestroy {
   shopOwner: ShopOwner | null = null;
   shops: Shop[] = [];
   createShopForm!: FormGroup;
-  reservations: Reservation[] = [];
+
   currentUserUid: string = '';
   isLoading = false;
   isCreating = false;
+  isEditing = false;
+  editingShop: Shop | null = null;
+  editShopForm!: FormGroup;
   map: any;
   marker: any;
   categories = ['Snacks', 'Milk Tea', 'Bakery', 'Restaurant'];
@@ -36,20 +36,17 @@ export class ManageShopPage implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private authService: AuthService,
     private shopService: ShopService,
-    private reservationService: ReservationService,
-    private locationService: LocationService,
     private loadingCtrl: LoadingController,
     private toastCtrl: ToastController,
     private alertCtrl: AlertController,
     private modalCtrl: ModalController
   ) {
     this.initializeCreateForm();
+    this.initializeEditForm();
   }
 
   ngOnInit(): void {
     this.loadCurrentUser();
-    this.loadReservations();
-    this.loadShops();
   }
 
   ngOnDestroy(): void {
@@ -79,6 +76,62 @@ export class ManageShopPage implements OnInit, OnDestroy {
     });
   }
 
+  private initializeEditForm(): void {
+    this.editShopForm = this.fb.group({
+      name: ['', Validators.required],
+      description: ['', Validators.required],
+      category: ['', Validators.required],
+      phone: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
+      address: ['', Validators.required],
+      totalSeats: [1, [Validators.required, Validators.min(1)]],
+      availableSeats: [1, [Validators.required, Validators.min(0)]],
+      openingTime: ['', Validators.required],
+      closingTime: ['', Validators.required],
+      isOpen: [true],
+      timezone: ['Asia/Manila', Validators.required],
+      latitude: [0, Validators.required],
+      longitude: [0, Validators.required],
+      openDays: this.fb.group({
+        monday: this.fb.group({
+          enabled: [false],
+          open: ['09:00'],
+          close: ['17:00']
+        }),
+        tuesday: this.fb.group({
+          enabled: [false],
+          open: ['09:00'],
+          close: ['17:00']
+        }),
+        wednesday: this.fb.group({
+          enabled: [false],
+          open: ['09:00'],
+          close: ['17:00']
+        }),
+        thursday: this.fb.group({
+          enabled: [false],
+          open: ['09:00'],
+          close: ['17:00']
+        }),
+        friday: this.fb.group({
+          enabled: [false],
+          open: ['09:00'],
+          close: ['17:00']
+        }),
+        saturday: this.fb.group({
+          enabled: [false],
+          open: ['09:00'],
+          close: ['17:00']
+        }),
+        sunday: this.fb.group({
+          enabled: [false],
+          open: ['09:00'],
+          close: ['17:00']
+        })
+      })
+    });
+  }
+
   private loadCurrentUser(): void {
     const sub = this.authService.getCurrentUser().subscribe(user => {
       if (user) {
@@ -94,9 +147,9 @@ export class ManageShopPage implements OnInit, OnDestroy {
       this.shopOwner = shopData || null;
       if (shopData) {
         this.initializeMap(shopData.location.lat, shopData.location.lng);
-      } else {
-        this.getCurrentLocation();
       }
+      // Always load shops regardless of shopOwner existence
+      this.loadShops();
     });
     this.subscriptions.add(sub);
   }
@@ -108,31 +161,9 @@ export class ManageShopPage implements OnInit, OnDestroy {
     this.subscriptions.add(sub);
   }
 
-  private loadReservations(): void {
-    const sub = this.authService.getCurrentUser().subscribe(user => {
-      if (user) {
-        this.reservationService.getReservationsByShop(user.uid).subscribe(reservations => {
-          this.reservations = reservations;
-        });
-      }
-    });
-    this.subscriptions.add(sub);
-  }
 
-  private async getCurrentLocation(): Promise<void> {
-    try {
-      const location = await this.locationService.getCurrentLocation().toPromise();
-      if (location) {
-        this.createShopForm.patchValue({
-          location: { lat: location.latitude, lng: location.longitude }
-        });
-        this.initializeMap(location.latitude, location.longitude);
-      }
-    } catch (error) {
-      console.error('Error getting location:', error);
-      this.showToast('Unable to get current location. Please set location manually.');
-    }
-  }
+
+
 
   private initializeMap(lat: number, lng: number): void {
     setTimeout(() => {
@@ -257,6 +288,74 @@ export class ManageShopPage implements OnInit, OnDestroy {
     }
   }
 
+  async editShop(shop: Shop): Promise<void> {
+    this.editingShop = shop;
+    this.editShopForm.patchValue({
+      name: shop.name,
+      description: shop.description,
+      category: shop.category,
+      phone: shop.phone,
+      email: shop.email,
+      address: shop.address,
+      totalSeats: shop.totalSeats,
+      availableSeats: shop.availableSeats,
+      openingTime: shop.openingTime,
+      closingTime: shop.closingTime,
+      isOpen: shop.isOpen,
+      timezone: shop.timezone,
+      latitude: shop.latitude,
+      longitude: shop.longitude,
+      openDays: shop.openDays
+    });
+    this.isEditing = true;
+  }
+
+  async updateShop(): Promise<void> {
+    if (this.editShopForm.invalid || !this.editingShop) {
+      this.showToast('Please fill in all required fields correctly.');
+      return;
+    }
+
+    this.isLoading = true;
+    const loading = await this.loadingCtrl.create({
+      message: 'Updating shop...'
+    });
+    await loading.present();
+
+    try {
+      const shopData = this.editShopForm.value;
+      const updates: Partial<Shop> = {
+        name: shopData.name,
+        description: shopData.description,
+        category: shopData.category,
+        phone: shopData.phone,
+        email: shopData.email,
+        address: shopData.address,
+        totalSeats: shopData.totalSeats,
+        availableSeats: shopData.availableSeats,
+        openingTime: shopData.openingTime,
+        closingTime: shopData.closingTime,
+        isOpen: shopData.isOpen,
+        timezone: shopData.timezone,
+        latitude: shopData.latitude,
+        longitude: shopData.longitude,
+        openDays: shopData.openDays
+      };
+
+      await this.shopService.updateShop(this.currentUserUid, this.editingShop.id, updates).toPromise();
+      this.showToast('Shop updated successfully!');
+      this.isEditing = false;
+      this.editingShop = null;
+      this.loadShops(); // Reload to show updated shop
+    } catch (error) {
+      console.error('Error updating shop:', error);
+      this.showToast('Error updating shop. Please try again.');
+    } finally {
+      this.isLoading = false;
+      await loading.dismiss();
+    }
+  }
+
   async removeShop(shop: Shop): Promise<void> {
     const alert = await this.alertCtrl.create({
       header: 'Remove Shop',
@@ -288,70 +387,29 @@ export class ManageShopPage implements OnInit, OnDestroy {
       ]
     });
     await alert.present();
-  }
+  } 
 
-  async acceptReservation(reservation: Reservation): Promise<void> {
-    const alert = await this.alertCtrl.create({
-      header: 'Accept Reservation',
-      message: `Accept reservation for ${reservation.customerName}? This will assign a seat and table.`,
-      buttons: [
-        {
-          text: 'Cancel',
-          role: 'cancel'
-        },
-        {
-          text: 'Accept',
-          handler: async () => {
-            try {
-              if (reservation.id) {
-                console.log('Accepting reservation and assigning seat/table...');
-                await this.reservationService.acceptReservation(reservation.id, this.currentUserUid, 'Reservation accepted');
-                console.log('Reservation accepted and seat/table assigned successfully');
-                this.showToast('Reservation accepted and seat/table assigned!');
-                this.loadReservations();
-              } else {
-                this.showToast('Reservation ID not found.');
-              }
-            } catch (error) {
-              console.error('Error accepting reservation:', error);
-              this.showToast('Error accepting reservation.');
-            }
-          }
-        }
-      ]
-    });
-    await alert.present();
-  }
 
-  async cancelReservation(reservation: Reservation): Promise<void> {
-    const alert = await this.alertCtrl.create({
-      header: 'Cancel Reservation',
-      message: `Cancel reservation for ${reservation.customerName || 'customer'}?`,
-      buttons: [
-        {
-          text: 'No',
-          role: 'cancel'
-        },
-        {
-          text: 'Yes',
-          handler: async () => {
-            try {
-              if (reservation.id) {
-                await this.reservationService.updateReservation(reservation.id, { status: 'cancelled' }).toPromise();
-                this.showToast('Reservation cancelled!');
-                this.loadReservations();
-              } else {
-                this.showToast('Reservation ID not found.');
-              }
-            } catch (error) {
-              console.error('Error cancelling reservation:', error);
-              this.showToast('Error cancelling reservation.');
-            }
-          }
-        }
-      ]
-    });
-    await alert.present();
+
+  getShopStatus(shop: Shop | ShopOwner): boolean {
+    // Convert ShopOwner to Shop-like object if needed
+    const shopData = shop as any;
+    if (shopData.location) {
+      // ShopOwner format
+      shopData.latitude = shopData.location.lat;
+      shopData.longitude = shopData.location.lng;
+      shopData.timezone = 'Asia/Manila'; // Default
+      shopData.openDays = {
+        monday: { enabled: true, open: shopData.openingTime, close: shopData.closingTime },
+        tuesday: { enabled: true, open: shopData.openingTime, close: shopData.closingTime },
+        wednesday: { enabled: true, open: shopData.openingTime, close: shopData.closingTime },
+        thursday: { enabled: true, open: shopData.openingTime, close: shopData.closingTime },
+        friday: { enabled: true, open: shopData.openingTime, close: shopData.closingTime },
+        saturday: { enabled: false, open: '09:00', close: '17:00' },
+        sunday: { enabled: false, open: '09:00', close: '17:00' }
+      };
+    }
+    return this.shopService.getShopStatus(shopData as Shop).isOpen;
   }
 
   private async showToast(message: string): Promise<void> {
