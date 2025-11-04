@@ -1,25 +1,35 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>My Reservations</ion-title>
+  <ion-toolbar class="gradient-toolbar">
+    <ion-title class="text-gradient-primary animate-fade-in">My Reservations</ion-title>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/customer/browse-shops"></ion-back-button>
+      <ion-back-button defaultHref="/customer/browse-shops" class="animate-fade-in"></ion-back-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
+<ion-content [fullscreen]="true" class="reservations-content">
   <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">My Reservations</ion-title>
+    <ion-toolbar class="gradient-toolbar">
+      <ion-title size="large" class="text-gradient-primary">My Reservations</ion-title>
     </ion-toolbar>
   </ion-header>
 
+  <!-- Hero Section -->
+  <div class="hero-section animate-fade-in-up">
+    <div class="hero-content">
+      <ion-icon name="restaurant-outline" class="hero-icon animate-bounce-in"></ion-icon>
+      <h1 class="hero-title text-gradient-primary">Your Dining Adventures</h1>
+      <p class="hero-subtitle">Manage your reservations with ease</p>
+    </div>
+  </div>
+
   <!-- View Reservations Button -->
-  <ion-card>
-    <ion-card-content>
-      <ion-button fill="solid" (click)="viewMyReservations()" expand="block">
-        <ion-icon name="list-outline" slot="start"></ion-icon>
-        View My Reservations
+  <ion-card class="action-card card-glass animate-fade-in-up animate-delay-200">
+    <ion-card-content class="action-content">
+      <ion-button fill="solid" class="btn-gradient-primary animate-pulse" (click)="viewMyReservations()" expand="block" size="large">
+        <ion-icon name="list-outline" slot="start" class="animate-float"></ion-icon>
+        <span class="btn-text">View My Reservations</span>
+        <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
       </ion-button>
     </ion-card-content>
   </ion-card>
