@@ -54,6 +54,10 @@ export interface Shop {
   dailyOverrides?: { [date: string]: DailyOverride }; // optional per-date overrides
   createdAt: any; // Timestamp
   updatedAt: any; // Timestamp
+  ratingSummary?: {
+    averageRating: number;
+    totalRatings: number;
+  };
 }
 
 export interface ShopCreate {

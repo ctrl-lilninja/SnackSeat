@@ -1,0 +1,56 @@
+.rating-content {
+  --background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.shop-info-card {
+  margin: 16px;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.rating-card {
+  margin: 16px;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.star-rating {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+
+  .star-icon {
+    font-size: 32px;
+    color: #ddd;
+    margin: 0 4px;
+    cursor: pointer;
+    transition: color 0.3s ease;
+
+    &.selected {
+      color: #ffd700;
+    }
+
+    &:hover {
+      color: #ffd700;
+    }
+  }
+}
+
+.rating-text {
+  text-align: center;
+  font-weight: bold;
+  color: #ffd700;
+  margin-bottom: 20px;
+}
+
+.anonymous-note {
+  font-size: 12px;
+  margin-top: 8px;
+  display: block;
+}
+
+.action-card {
+  margin: 16px;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}

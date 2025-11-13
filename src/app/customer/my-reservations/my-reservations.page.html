@@ -137,6 +137,16 @@
                 </ion-button>
               </ion-col>
             </ion-row>
+
+            <!-- Rate Shop Button for completed reservations -->
+            <ion-row *ngIf="reservation.status === 'done'">
+              <ion-col size="12">
+                <ion-button fill="solid" color="success" (click)="rateShop(reservation)" size="small" expand="block">
+                  <ion-icon name="star-outline" slot="start"></ion-icon>
+                  Rate Shop
+                </ion-button>
+              </ion-col>
+            </ion-row>
           </ion-card-content>
         </ion-card>
       </ion-content>

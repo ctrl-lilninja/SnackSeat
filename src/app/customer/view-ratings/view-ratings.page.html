@@ -1,0 +1,77 @@
+<ion-header [translucent]="true">
+  <ion-toolbar class="gradient-toolbar">
+    <ion-title class="text-gradient-primary animate-fade-in">All Ratings</ion-title>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/shop-owner" class="animate-fade-in"></ion-back-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ratings-content">
+  <ion-header collapse="condense">
+    <ion-toolbar class="gradient-toolbar">
+      <ion-title size="large" class="text-gradient-primary">All Ratings</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <!-- Shop Info -->
+  <ion-card class="shop-info-card animate-fade-in-up" *ngIf="shop">
+    <ion-card-header>
+      <ion-card-title>{{ shop.name }}</ion-card-title>
+      <ion-card-subtitle>{{ shop.category }}</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <p>{{ shop.description }}</p>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Loading -->
+  <ion-card *ngIf="isLoading">
+    <ion-card-content>
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Loading ratings...</p>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- No Ratings -->
+  <ion-card *ngIf="!isLoading && ratings.length === 0">
+    <ion-card-content>
+      <ion-text color="medium">
+        <p>No ratings yet for this shop.</p>
+      </ion-text>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Ratings List -->
+  <ion-card *ngFor="let rating of ratings" class="rating-card animate-fade-in-up">
+    <ion-card-header>
+      <ion-card-title>
+        <div class="rating-header">
+          <div class="customer-name">{{ getDisplayName(rating) }}</div>
+          <div class="rating-stars">
+            <ion-icon
+              *ngFor="let star of getStarArray(rating.rating)"
+              [name]="star <= rating.rating ? 'star' : 'star-outline'"
+              color="warning">
+            </ion-icon>
+            <span class="rating-number">{{ rating.rating }}/5</span>
+          </div>
+        </div>
+      </ion-card-title>
+      <ion-card-subtitle>{{ getFormattedDate(rating) | date:'medium' }}</ion-card-subtitle>
+    </ion-card-header>
+
+    <ion-card-content>
+      <p *ngIf="rating.comment" class="rating-comment">{{ rating.comment }}</p>
+
+      <!-- Owner Reply -->
+      <div *ngIf="rating.ownerReply" class="owner-reply">
+        <ion-icon name="chatbubble-ellipses-outline" color="primary"></ion-icon>
+        <div class="reply-content">
+          <strong>Shop Owner Reply:</strong>
+          <p>{{ rating.ownerReply }}</p>
+        </div>
+      </div>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

@@ -7,7 +7,15 @@ const routes: Routes = [
   {
     path: '',
     component: CustomerPage
+  },  {
+    path: 'rate-shop',
+    loadChildren: () => import('./rate-shop/rate-shop.module').then( m => m.RateShopPageModule)
+  },
+  {
+    path: 'view-ratings',
+    loadChildren: () => import('./view-ratings/view-ratings.module').then( m => m.ViewRatingsPageModule)
   }
+
 ];
 
 @NgModule({

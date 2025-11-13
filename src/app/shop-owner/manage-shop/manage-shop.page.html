@@ -66,6 +66,26 @@
             <p><strong>Opening Time:</strong> {{ shop.openingTime }}</p>
             <p><strong>Closing Time:</strong> {{ shop.closingTime }}</p>
             <p><strong>Reservation Date:</strong> {{ shop.reservationDate }}</p>
+
+            <!-- Ratings Section -->
+            <div class="ratings-section" *ngIf="shop.ratingSummary && shop.ratingSummary.totalRatings > 0">
+              <ion-row>
+                <ion-col size="6">
+                  <div class="rating-display">
+                    <ion-icon name="star" color="warning"></ion-icon>
+                    <span class="rating-score">{{ shop.ratingSummary.averageRating.toFixed(1) }}</span>
+                    <span class="rating-count">({{ shop.ratingSummary.totalRatings }})</span>
+                  </div>
+                </ion-col>
+                <ion-col size="6">
+                  <ion-button fill="clear" size="small" (click)="viewShopRatings(shop)">
+                    <ion-icon name="chatbubbles-outline" slot="start"></ion-icon>
+                    View Ratings
+                  </ion-button>
+                </ion-col>
+              </ion-row>
+            </div>
+
             <ion-button fill="outline" color="primary" (click)="editShop(shop)">
               <ion-icon name="create" slot="start"></ion-icon>
               Edit

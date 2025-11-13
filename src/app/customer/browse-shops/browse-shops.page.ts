@@ -5,8 +5,10 @@ import { Browser } from '@capacitor/browser';
 import { ShopService } from '../../services/shop.service';
 import { AuthService } from '../../services/auth.service';
 import { ReservationService } from '../../services/reservation.service';
+import { RatingService } from '../../services/rating.service';
 import { Shop, OpenDays } from '../../models/shop.model';
 import { ReservationCreate } from '../../models/reservation.model';
+import { ShopRatingSummary } from '../../models/rating.model';
 
 @Component({
   selector: 'app-browse-shops',
@@ -22,6 +24,7 @@ export class BrowseShopsPage implements OnInit {
     private shopService: ShopService,
     private authService: AuthService,
     private reservationService: ReservationService,
+    private ratingService: RatingService,
     private router: Router,
     private toastController: ToastController,
     private alertController: AlertController,
@@ -35,10 +38,10 @@ export class BrowseShopsPage implements OnInit {
   loadShops() {
     this.shopService.getAllShops().subscribe({
       next: (shops) => {
-        // Calculate real-time status for each shop
+        // Calculate real-time status for each shop and load ratings
         this.shops = shops.map(shop => {
           const status = this.shopService.getShopStatus(shop);
-          return {
+          const shopWithStatus = {
             ...shop,
             isOpen: status.isOpen,
             availableSeats: status.availableSeats,
@@ -47,6 +50,18 @@ export class BrowseShopsPage implements OnInit {
             closingTime: shop.openDays[this.getCurrentWeekday()]?.close || 'N/A',
             reservationDate: new Date().toISOString().split('T')[0] // Today's date
           };
+
+          // Load rating summary for this shop
+          this.ratingService.getRatingSummary(shop.id).subscribe({
+            next: (ratingSummary) => {
+              (shopWithStatus as any).ratingSummary = ratingSummary;
+            },
+            error: (error) => {
+              console.error('Error loading rating summary:', error);
+            }
+          });
+
+          return shopWithStatus;
         });
         this.isLoading = false;
       },
@@ -83,6 +98,13 @@ export class BrowseShopsPage implements OnInit {
       console.error('Error opening directions:', error);
       this.showToast('Error opening directions');
     }
+  }
+
+  async viewAllRatings(shop: Shop) {
+    // Navigate to view ratings modal/page
+    this.router.navigate(['/customer/view-ratings'], {
+      queryParams: { shopId: shop.id }
+    });
   }
 
   async logout() {

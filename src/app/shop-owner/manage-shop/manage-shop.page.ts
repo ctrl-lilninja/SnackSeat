@@ -1,10 +1,13 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { LoadingController, ToastController, AlertController, ModalController } from '@ionic/angular';
+import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ShopService } from '../../services/shop.service';
+import { RatingService } from '../../services/rating.service';
 import { ShopOwner, ShopOwnerCreate } from '../../models/shop-owner.model';
 import { Shop } from '../../models/shop.model';
+import { ShopRatingSummary } from '../../models/rating.model';
 import { Subscription } from 'rxjs';
 
 declare let L: any; // Leaflet global
@@ -36,6 +39,8 @@ export class ManageShopPage implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private authService: AuthService,
     private shopService: ShopService,
+    private ratingService: RatingService,
+    private router: Router,
     private loadingCtrl: LoadingController,
     private toastCtrl: ToastController,
     private alertCtrl: AlertController,
@@ -157,6 +162,17 @@ export class ManageShopPage implements OnInit, OnDestroy {
   private loadShops(): void {
     const sub = this.shopService.getShopsByOwner(this.currentUserUid).subscribe(shops => {
       this.shops = shops;
+      // Load rating summaries for each shop
+      this.shops.forEach(shop => {
+        this.ratingService.getRatingSummary(shop.id).subscribe({
+          next: (ratingSummary) => {
+            (shop as any).ratingSummary = ratingSummary;
+          },
+          error: (error) => {
+            console.error('Error loading rating summary:', error);
+          }
+        });
+      });
     });
     this.subscriptions.add(sub);
   }
@@ -410,6 +426,12 @@ export class ManageShopPage implements OnInit, OnDestroy {
       };
     }
     return this.shopService.getShopStatus(shopData as Shop).isOpen;
+  }
+
+  async viewShopRatings(shop: Shop): Promise<void> {
+    this.router.navigate(['/shop-owner/view-ratings'], {
+      queryParams: { shopId: shop.id }
+    });
   }
 
   private async showToast(message: string): Promise<void> {

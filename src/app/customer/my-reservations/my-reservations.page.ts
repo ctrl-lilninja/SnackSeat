@@ -8,6 +8,7 @@ import { AuthService } from '../../services/auth.service';
 import { ShopService } from '../../services/shop.service';
 import { Reservation } from '../../models/reservation.model';
 import { Shop } from '../../models/shop.model';
+import { RatingService } from '../../services/rating.service';
 
 @Component({
   selector: 'app-my-reservations',
@@ -27,6 +28,7 @@ export class MyReservationsPage implements OnInit, OnDestroy {
     private reservationService: ReservationService,
     private authService: AuthService,
     private shopService: ShopService,
+    private ratingService: RatingService,
     private router: Router,
     private toastController: ToastController,
     private alertController: AlertController,
@@ -188,6 +190,15 @@ export class MyReservationsPage implements OnInit, OnDestroy {
   getShopName(shopId: string): string {
     const shop = this.shops.find(s => s.id === shopId);
     return shop ? shop.name : 'Shop';
+  }
+
+  async rateShop(reservation: Reservation): Promise<void> {
+    // Close the reservations modal before navigating
+    this.closeReservationsModal();
+    // Navigate to rate shop modal/page
+    this.router.navigate(['/customer/rate-shop'], {
+      queryParams: { reservationId: reservation.id, shopId: reservation.shopId }
+    });
   }
 
   private async showToast(message: string): Promise<void> {

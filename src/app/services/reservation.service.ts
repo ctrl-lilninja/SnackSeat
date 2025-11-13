@@ -242,6 +242,11 @@ export class ReservationService {
     await this.updateShopAvailability(reservation.ownerId, reservation.shopId, reservation.seatsRequested, status);
   }
 
+  // Mark reservation as done (completed)
+  async markReservationAsDone(reservationId: string): Promise<void> {
+    await this.updateReservationStatus(reservationId, 'done');
+  }
+
   // Accept reservation (manual assignment)
   async acceptReservation(reservationId: string, confirmedBy: string, acceptanceNotes: string): Promise<void> {
     // First, get the reservation details

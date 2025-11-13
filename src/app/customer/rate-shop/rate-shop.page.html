@@ -1,0 +1,87 @@
+<ion-header [translucent]="true">
+  <ion-toolbar class="gradient-toolbar">
+    <ion-title class="text-gradient-primary animate-fade-in">Rate Shop</ion-title>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/customer/my-reservations" class="animate-fade-in"></ion-back-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="rating-content">
+  <ion-header collapse="condense">
+    <ion-toolbar class="gradient-toolbar">
+      <ion-title size="large" class="text-gradient-primary">Rate Shop</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <!-- Shop Info -->
+  <ion-card class="shop-info-card animate-fade-in-up" *ngIf="shop">
+    <ion-card-header>
+      <ion-card-title>{{ shop.name }}</ion-card-title>
+      <ion-card-subtitle>{{ shop.category }}</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <p>{{ shop.description }}</p>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Rating Section -->
+  <form [formGroup]="ratingForm">
+    <ion-card class="rating-card animate-fade-in-up animate-delay-200">
+      <ion-card-header>
+        <ion-card-title>How was your experience?</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <!-- Star Rating -->
+        <div class="star-rating">
+          <ion-icon
+            *ngFor="let star of stars"
+            [name]="star <= rating ? 'star' : 'star-outline'"
+            (click)="setRating(star)"
+            class="star-icon"
+            [class.selected]="star <= rating">
+          </ion-icon>
+        </div>
+        <p class="rating-text" *ngIf="rating > 0">{{ rating }} star{{ rating > 1 ? 's' : '' }}</p>
+
+        <!-- Comment -->
+        <ion-item>
+          <ion-textarea
+            label="Comment (optional)"
+            labelPlacement="floating"
+            placeholder="Share your experience..."
+            formControlName="comment"
+            maxlength="500"
+            counter="true"
+            rows="3">
+          </ion-textarea>
+        </ion-item>
+
+        <!-- Anonymous Toggle -->
+        <ion-item>
+          <ion-label>Hide my identity</ion-label>
+          <ion-toggle formControlName="anonymous" slot="end"></ion-toggle>
+        </ion-item>
+        <ion-text color="medium" class="anonymous-note">
+          <p>Your name will be masked as "N***A" if anonymous</p>
+        </ion-text>
+      </ion-card-content>
+    </ion-card>
+  </form>
+
+  <!-- Submit Button -->
+  <ion-card class="action-card animate-fade-in-up animate-delay-400">
+    <ion-card-content>
+      <ion-button
+        fill="solid"
+        class="btn-gradient-primary"
+        expand="block"
+        size="large"
+        (click)="submitRating()"
+        [disabled]="ratingForm.invalid || rating === 0">
+        <ion-icon name="send-outline" slot="start"></ion-icon>
+        Submit Rating
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

@@ -7,6 +7,10 @@ const routes: Routes = [
   {
     path: '',
     component: ShopOwnerPage
+  },
+  {
+    path: 'view-ratings',
+    loadChildren: () => import('../customer/view-ratings/view-ratings.module').then( m => m.ViewRatingsPageModule)
   }
 ];
 
