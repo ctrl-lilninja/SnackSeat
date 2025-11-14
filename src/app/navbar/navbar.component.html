@@ -1,33 +1,130 @@
-<ion-header>
-  <ion-toolbar color="primary">
-    <ion-title>SnackSeat</ion-title>
-    <ion-buttons slot="end">
-      <ion-button *ngIf="currentUser" (click)="onMenuToggle()">
-        <ion-icon name="person-circle-outline"></ion-icon>
-        <ion-text *ngIf="currentUser" style="margin-left: 8px;">
-          {{ currentUser.displayName }}
-        </ion-text>
+<ion-header class="navbar-header">
+  <ion-toolbar class="navbar-toolbar">
+    <!-- Logo/Brand -->
+    <ion-buttons slot="start">
+      <ion-button fill="clear" class="brand-button" routerLink="/customer">
+        <ion-icon name="restaurant-outline" class="brand-icon"></ion-icon>
+        <ion-text class="brand-text">SnackSeat</ion-text>
+      </ion-button>
+    </ion-buttons>
+
+    <!-- Navigation Actions -->
+    <ion-buttons slot="end" class="nav-actions">
+      <!-- Quick Actions -->
+      <ion-button fill="clear" class="nav-action-btn" routerLink="/customer/browse-shops">
+        <ion-icon name="search-outline"></ion-icon>
+        <ion-text class="nav-action-text">Browse</ion-text>
+      </ion-button>
+
+      <ion-button fill="clear" class="nav-action-btn" routerLink="/customer/my-reservations">
+        <ion-icon name="list-outline"></ion-icon>
+        <ion-text class="nav-action-text">My Reservations</ion-text>
+      </ion-button>
+
+      <!-- User Profile Menu -->
+      <ion-button fill="clear" class="user-menu-btn" (click)="onMenuToggle()" *ngIf="currentUser">
+        <div class="user-avatar">
+          <ion-icon name="person-circle" class="avatar-icon"></ion-icon>
+        </div>
+        <div class="user-info">
+          <ion-text class="user-name">{{ currentUser.displayName || 'User' }}</ion-text>
+          <ion-text class="user-role">{{ getUserRole() }}</ion-text>
+        </div>
+        <ion-icon name="chevron-down-outline" class="dropdown-icon"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-menu side="start" menuId="main-menu" contentId="main-content" (willClose)="isMenuOpen = false">
-  <ion-header>
-    <ion-toolbar color="primary">
-      <ion-title>Menu</ion-title>
-    </ion-toolbar>
+<!-- Enhanced Side Menu -->
+<ion-menu side="start" menuId="main-menu" contentId="main-content" (willClose)="isMenuOpen = false" class="main-menu">
+  <!-- User Profile Header -->
+  <ion-header class="menu-header">
+    <div class="user-profile-section" *ngIf="currentUser">
+      <div class="user-avatar-large">
+        <ion-icon name="person-circle" class="avatar-large-icon"></ion-icon>
+      </div>
+      <div class="user-details">
+        <h3 class="user-display-name">{{ currentUser.displayName || 'User' }}</h3>
+        <p class="user-email">{{ currentUser.email }}</p>
+        <ion-badge class="role-badge" [color]="getRoleColor()">{{ getUserRole() }}</ion-badge>
+      </div>
+    </div>
   </ion-header>
-  <ion-content>
-    <ion-list>
-      <ion-item button (click)="onProfile()">
-        <ion-icon name="person-outline" slot="start"></ion-icon>
-        <ion-label>Profile</ion-label>
-      </ion-item>
-      <ion-item button (click)="onLogout()">
-        <ion-icon name="log-out-outline" slot="start"></ion-icon>
-        <ion-label>Logout</ion-label>
-      </ion-item>
+
+  <ion-content class="menu-content">
+    <ion-list class="menu-list">
+      <!-- Quick Actions -->
+      <ion-item-group>
+        <ion-item-divider>
+          <ion-label>Quick Actions</ion-label>
+        </ion-item-divider>
+
+        <ion-item button class="menu-item" routerLink="/customer" (click)="closeMenu()">
+          <ion-icon name="home-outline" slot="start" color="primary"></ion-icon>
+          <ion-label>Home Dashboard</ion-label>
+          <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+        </ion-item>
+
+        <ion-item button class="menu-item" routerLink="/customer/browse-shops" (click)="closeMenu()">
+          <ion-icon name="search-outline" slot="start" color="secondary"></ion-icon>
+          <ion-label>Browse Shops</ion-label>
+          <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+        </ion-item>
+
+        <ion-item button class="menu-item" routerLink="/customer/my-reservations" (click)="closeMenu()">
+          <ion-icon name="list-outline" slot="start" color="tertiary"></ion-icon>
+          <ion-label>My Reservations</ion-label>
+          <ion-badge slot="end" color="primary" *ngIf="upcomingReservationsCount > 0">{{ upcomingReservationsCount }}</ion-badge>
+          <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+        </ion-item>
+      </ion-item-group>
+
+      <!-- Account Management -->
+      <ion-item-group>
+        <ion-item-divider>
+          <ion-label>Account</ion-label>
+        </ion-item-divider>
+
+        <ion-item button class="menu-item" routerLink="/profile" (click)="closeMenu()">
+          <ion-icon name="person-outline" slot="start" color="medium"></ion-icon>
+          <ion-label>Profile Settings</ion-label>
+          <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+        </ion-item>
+
+        <ion-item button class="menu-item" routerLink="/notifications" (click)="closeMenu()">
+          <ion-icon name="notifications-outline" slot="start" color="medium"></ion-icon>
+          <ion-label>Notifications</ion-label>
+          <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+        </ion-item>
+      </ion-item-group>
+
+      <!-- Support & Help -->
+      <ion-item-group>
+        <ion-item-divider>
+          <ion-label>Support</ion-label>
+        </ion-item-divider>
+
+        <ion-item button class="menu-item" (click)="openHelp()">
+          <ion-icon name="help-circle-outline" slot="start" color="medium"></ion-icon>
+          <ion-label>Help & Support</ion-label>
+          <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+        </ion-item>
+
+        <ion-item button class="menu-item" (click)="openFeedback()">
+          <ion-icon name="chatbubble-outline" slot="start" color="medium"></ion-icon>
+          <ion-label>Send Feedback</ion-label>
+          <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+        </ion-item>
+      </ion-item-group>
     </ion-list>
+
+    <!-- Logout Button -->
+    <div class="logout-section">
+      <ion-button fill="outline" color="danger" expand="block" (click)="onLogout()" class="logout-btn">
+        <ion-icon name="log-out-outline" slot="start"></ion-icon>
+        Logout
+      </ion-button>
+    </div>
   </ion-content>
 </ion-menu>

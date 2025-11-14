@@ -1,20 +1,187 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>
-      Blank
+<ion-header [translucent]="true" class="dashboard-header">
+  <ion-toolbar class="dashboard-toolbar">
+    <ion-title class="dashboard-title">
+      <ion-icon name="home-outline" class="title-icon"></ion-icon>
+      Dashboard
     </ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content [fullscreen]="true" class="dashboard-content">
+  <!-- Welcome Section -->
+  <div class="welcome-hero animate-fade-in-up">
+    <div class="hero-background">
+      <div class="hero-gradient"></div>
+      <div class="hero-pattern"></div>
+    </div>
+    <div class="hero-content">
+      <div class="welcome-text">
+        <h1 class="hero-title text-gradient-primary">
+          Welcome back, {{ currentUser?.displayName || 'Foodie' }}!
+        </h1>
+        <p class="hero-subtitle">Ready to discover your next favorite dining experience?</p>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-item">
+          <ion-icon name="restaurant-outline" class="stat-icon"></ion-icon>
+          <div class="stat-info">
+            <span class="stat-number">{{ upcomingReservations.length }}</span>
+            <span class="stat-label">Upcoming</span>
+          </div>
+        </div>
+        <div class="stat-item">
+          <ion-icon name="checkmark-circle-outline" class="stat-icon"></ion-icon>
+          <div class="stat-info">
+            <span class="stat-number">{{ completedReservations.length }}</span>
+            <span class="stat-label">Completed</span>
+          </div>
+        </div>
+        <div class="stat-item">
+          <ion-icon name="star-outline" class="stat-icon"></ion-icon>
+          <div class="stat-info">
+            <span class="stat-number">{{ totalReviews }}</span>
+            <span class="stat-label">Reviews</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
+  <!-- Quick Actions -->
+  <div class="quick-actions-section animate-fade-in-up animate-delay-200">
+    <h2 class="section-title">Quick Actions</h2>
+    <div class="actions-grid">
+      <ion-card class="action-card card-glass" (click)="navigateToBrowse()">
+        <div class="action-content">
+          <div class="action-icon">
+            <ion-icon name="search-outline" color="primary"></ion-icon>
+          </div>
+          <div class="action-info">
+            <h3>Browse Shops</h3>
+            <p>Discover new restaurants</p>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="action-arrow"></ion-icon>
+        </div>
+      </ion-card>
+
+      <ion-card class="action-card card-glass" (click)="navigateToReservations()">
+        <div class="action-content">
+          <div class="action-icon">
+            <ion-icon name="list-outline" color="secondary"></ion-icon>
+          </div>
+          <div class="action-info">
+            <h3>My Reservations</h3>
+            <p>Manage your bookings</p>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="action-arrow"></ion-icon>
+        </div>
+      </ion-card>
+
+      <ion-card class="action-card card-glass" (click)="navigateToProfile()">
+        <div class="action-content">
+          <div class="action-icon">
+            <ion-icon name="person-outline" color="tertiary"></ion-icon>
+          </div>
+          <div class="action-info">
+            <h3>Profile</h3>
+            <p>Update your information</p>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="action-arrow"></ion-icon>
+        </div>
+      </ion-card>
+
+      <ion-card class="action-card card-glass" (click)="navigateToFavorites()">
+        <div class="action-content">
+          <div class="action-icon">
+            <ion-icon name="heart-outline" color="danger"></ion-icon>
+          </div>
+          <div class="action-info">
+            <h3>Favorites</h3>
+            <p>Your saved restaurants</p>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="action-arrow"></ion-icon>
+        </div>
+      </ion-card>
+    </div>
+  </div>
+
+  <!-- Upcoming Reservations -->
+  <div class="upcoming-section animate-fade-in-up animate-delay-400" *ngIf="upcomingReservations.length > 0">
+    <div class="section-header">
+      <h2 class="section-title">Upcoming Reservations</h2>
+      <ion-button fill="clear" class="view-all-btn" (click)="navigateToReservations()">
+        View All
+        <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+      </ion-button>
+    </div>
+
+    <div class="reservations-list">
+      <ion-card class="reservation-card" *ngFor="let reservation of upcomingReservations.slice(0, 3)">
+        <div class="reservation-content">
+          <div class="reservation-main">
+            <div class="shop-info">
+              <h3 class="shop-name">{{ getShopName(reservation.shopId) }}</h3>
+              <p class="reservation-date">{{ reservation.reservationDate | date:'medium' }}</p>
+            </div>
+            <div class="reservation-status">
+              <ion-badge [color]="getStatusColor(reservation.status)">
+                {{ reservation.status | titlecase }}
+              </ion-badge>
+            </div>
+          </div>
+          <div class="reservation-details">
+            <span class="detail-item">
+              <ion-icon name="people-outline"></ion-icon>
+              {{ reservation.seatsRequested }} people
+            </span>
+            <span class="detail-item">
+              <ion-icon name="time-outline"></ion-icon>
+              {{ reservation.reservationDate | date:'shortTime' }}
+            </span>
+          </div>
+        </div>
+      </ion-card>
+    </div>
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="activity-section animate-fade-in-up animate-delay-600" *ngIf="recentActivity.length > 0">
+    <h2 class="section-title">Recent Activity</h2>
+    <div class="activity-list">
+      <ion-card class="activity-card" *ngFor="let activity of recentActivity.slice(0, 5)">
+        <div class="activity-content">
+          <div class="activity-icon">
+            <ion-icon [name]="activity.icon" [color]="activity.color"></ion-icon>
+          </div>
+          <div class="activity-info">
+            <p class="activity-text">{{ activity.text }}</p>
+            <span class="activity-time">{{ activity.timestamp | date:'short' }}</span>
+          </div>
+        </div>
+      </ion-card>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state animate-fade-in-up" *ngIf="upcomingReservations.length === 0 && recentActivity.length === 0">
+    <div class="empty-content">
+      <ion-icon name="restaurant-outline" class="empty-icon"></ion-icon>
+      <h3>No reservations yet</h3>
+      <p>Start exploring restaurants and make your first reservation!</p>
+      <ion-button fill="solid" class="explore-btn" (click)="navigateToBrowse()">
+        <ion-icon name="search-outline" slot="start"></ion-icon>
+        Explore Restaurants
+      </ion-button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading">
+    <ion-card class="loading-card">
+      <ion-card-content>
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>Loading your dashboard...</p>
+      </ion-card-content>
+    </ion-card>
   </div>
 </ion-content>

@@ -1,0 +1,413 @@
+// ============================================
+// NAVIGATION BAR STYLES
+// ============================================
+
+.navbar-header {
+  --background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-toolbar {
+  --background: transparent;
+  --border-width: 0;
+  --padding-start: var(--spacing-md);
+  --padding-end: var(--spacing-md);
+  --min-height: 60px;
+}
+
+// ============================================
+// BRAND SECTION
+// ============================================
+
+.brand-button {
+  --color: var(--snackseat-primary);
+  --padding-start: 0;
+  --padding-end: var(--spacing-sm);
+  --border-radius: var(--ion-border-radius-sm);
+
+  &:hover {
+    --background: rgba(255, 107, 53, 0.1);
+  }
+}
+
+.brand-icon {
+  font-size: 24px;
+  margin-right: var(--spacing-xs);
+}
+
+.brand-text {
+  font-family: var(--font-family-primary);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-lg);
+  color: var(--snackseat-primary);
+}
+
+// ============================================
+// NAVIGATION ACTIONS
+// ============================================
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.nav-action-btn {
+  --color: var(--ion-color-dark);
+  --padding-start: var(--spacing-sm);
+  --padding-end: var(--spacing-sm);
+  --border-radius: var(--ion-border-radius-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 60px;
+  height: 48px;
+
+  &:hover {
+    --background: rgba(0, 0, 0, 0.05);
+  }
+
+  ion-icon {
+    font-size: 20px;
+    margin-bottom: 2px;
+  }
+}
+
+.nav-action-text {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+}
+
+// ============================================
+// USER MENU BUTTON
+// ============================================
+
+.user-menu-btn {
+  --color: var(--ion-color-dark);
+  --padding-start: var(--spacing-sm);
+  --padding-end: var(--spacing-sm);
+  --border-radius: var(--ion-border-radius-sm);
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  max-width: 180px;
+
+  &:hover {
+    --background: rgba(0, 0, 0, 0.05);
+  }
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: var(--spacing-sm);
+  flex-shrink: 0;
+}
+
+.avatar-icon {
+  font-size: 20px;
+  color: white;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  flex: 1;
+}
+
+.user-name {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--ion-color-dark);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+.user-role {
+  font-size: var(--font-size-xs);
+  color: var(--ion-color-medium);
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dropdown-icon {
+  font-size: 14px;
+  color: var(--ion-color-medium);
+  margin-left: var(--spacing-xs);
+  flex-shrink: 0;
+}
+
+// ============================================
+// SIDE MENU STYLES
+// ============================================
+
+.main-menu {
+  --width: 320px;
+  --background: var(--ion-background-color);
+  --border-radius: var(--ion-border-radius-lg) 0 0 var(--ion-border-radius-lg);
+  box-shadow: var(--ion-box-shadow-lg);
+}
+
+.menu-header {
+  --background: var(--gradient-primary);
+  --border-width: 0;
+  padding: var(--spacing-lg);
+  min-height: 120px;
+}
+
+.user-profile-section {
+  display: flex;
+  align-items: center;
+  color: white;
+}
+
+.user-avatar-large {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: var(--spacing-md);
+  border: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+.avatar-large-icon {
+  font-size: 30px;
+  color: white;
+}
+
+.user-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-display-name {
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  margin: 0 0 var(--spacing-xs) 0;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-email {
+  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0 0 var(--spacing-sm) 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.role-badge {
+  --background: rgba(255, 255, 255, 0.2);
+  --color: white;
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+// ============================================
+// MENU CONTENT
+// ============================================
+
+.menu-content {
+  --background: var(--ion-background-color);
+}
+
+.menu-list {
+  --background: transparent;
+  padding: var(--spacing-md) 0;
+}
+
+ion-item-group {
+  margin-bottom: var(--spacing-lg);
+
+  &:last-child {
+    margin-bottom: var(--spacing-md);
+  }
+}
+
+ion-item-divider {
+  --background: rgba(0, 0, 0, 0.05);
+  --color: var(--ion-color-dark);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: var(--font-size-xs);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  margin: 0;
+  min-height: 40px;
+}
+
+.menu-item {
+  --background: transparent;
+  --border-radius: 0;
+  --padding-start: var(--spacing-lg);
+  --padding-end: var(--spacing-lg);
+  --min-height: 56px;
+  --border-width: 0;
+  --inner-border-width: 0;
+  margin: 2px var(--spacing-md);
+  border-radius: var(--ion-border-radius-sm);
+  transition: all var(--transition-fast);
+
+  &:hover {
+    --background: rgba(0, 0, 0, 0.03);
+  }
+
+  &:active {
+    --background: rgba(0, 0, 0, 0.06);
+  }
+
+  ion-icon {
+    font-size: 20px;
+    margin-right: var(--spacing-md);
+  }
+
+  ion-label {
+    font-weight: var(--font-weight-medium);
+    color: var(--ion-color-dark);
+  }
+
+  ion-icon[slot="end"] {
+    font-size: 16px;
+    color: var(--ion-color-medium);
+    margin-right: 0;
+  }
+}
+
+// ============================================
+// LOGOUT SECTION
+// ============================================
+
+.logout-section {
+  padding: var(--spacing-lg);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  margin-top: auto;
+}
+
+.logout-btn {
+  --border-radius: var(--ion-border-radius-sm);
+  --border-width: 2px;
+  font-weight: var(--font-weight-semibold);
+  text-transform: none;
+  letter-spacing: 0.3px;
+
+  &:hover {
+    --background: rgba(230, 57, 70, 0.1);
+  }
+}
+
+// ============================================
+// RESPONSIVE DESIGN
+// ============================================
+
+@media (max-width: 576px) {
+  .navbar-toolbar {
+    --padding-start: var(--spacing-sm);
+    --padding-end: var(--spacing-sm);
+  }
+
+  .nav-action-btn {
+    min-width: 50px;
+    --padding-start: var(--spacing-xs);
+    --padding-end: var(--spacing-xs);
+  }
+
+  .nav-action-text {
+    font-size: 10px;
+  }
+
+  .user-menu-btn {
+    max-width: 140px;
+  }
+
+  .user-name {
+    max-width: 100px;
+  }
+
+  .main-menu {
+    --width: 280px;
+  }
+
+  .menu-item {
+    --padding-start: var(--spacing-md);
+    --padding-end: var(--spacing-md);
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-actions {
+    gap: 0;
+  }
+
+  .nav-action-btn {
+    min-width: 44px;
+  }
+
+  .user-menu-btn {
+    max-width: 120px;
+  }
+
+  .user-info {
+    display: none;
+  }
+
+  .dropdown-icon {
+    margin-left: 0;
+  }
+}
+
+// ============================================
+// DARK MODE ADJUSTMENTS
+// ============================================
+
+@media (prefers-color-scheme: dark) {
+  .navbar-header {
+    --background: rgba(30, 30, 30, 0.95);
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .nav-action-btn:hover,
+  .user-menu-btn:hover {
+    --background: rgba(255, 255, 255, 0.05);
+  }
+
+  .menu-item:hover {
+    --background: rgba(255, 255, 255, 0.05);
+  }
+
+  .menu-item:active {
+    --background: rgba(255, 255, 255, 0.08);
+  }
+
+  ion-item-divider {
+    --background: rgba(255, 255, 255, 0.05);
+    --color: var(--ion-text-color);
+  }
+
+  .logout-section {
+    border-top-color: rgba(255, 255, 255, 0.1);
+  }
+}
