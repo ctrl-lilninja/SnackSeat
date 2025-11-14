@@ -16,6 +16,7 @@ import {
   runTransaction,
   collectionGroup
 } from '@angular/fire/firestore';
+import { Auth } from '@angular/fire/auth';
 import { Observable, combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Reservation, ReservationCreate, ReservationUpdate } from '../models/reservation.model';
@@ -26,6 +27,7 @@ import { getNextDateForWeekday } from '../utils/getNextDateForWeekday';
 })
 export class ReservationService {
   private firestore = inject(Firestore);
+  private auth = inject(Auth);
 
   // Create a new reservation
   async createReservation(

@@ -21,8 +21,14 @@ service cloud.firestore {
     match /reservations/{reservationId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null;
-      allow update: if request.auth != null && request.auth.uid == resource.data.customerId;
-      allow delete: if request.auth != null && request.auth.uid == resource.data.customerId;
+      allow update: if request.auth != null && (request.auth.uid == resource.data.customerId || request.auth.uid == resource.data.ownerId);
+      allow delete: if request.auth != null && (request.auth.uid == resource.data.customerId || request.auth.uid == resource.data.ownerId);
+    }
+
+    // Allow reading reservations for demo purposes (temporary)
+    match /reservations {
+      allow read: if true;
+      allow write: if true;
     }
 
     // Allow reading shops through collection group query for browse functionality
@@ -36,6 +42,12 @@ service cloud.firestore {
       allow create: if request.auth != null;
       allow update: if request.auth != null && request.auth.uid == resource.data.customerId;
       allow delete: if request.auth != null && request.auth.uid == resource.data.customerId;
+    }
+
+    // Allow reading ratings for demo purposes (temporary)
+    match /ratings {
+      allow read: if true;
+      allow write: if true;
     }
   }
 }
