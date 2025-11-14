@@ -18,7 +18,11 @@ import { ShopRatingSummary } from '../../models/rating.model';
 })
 export class BrowseShopsPage implements OnInit {
   shops: Shop[] = [];
+  filteredShops: Shop[] = [];
   isLoading = true;
+  searchTerm = '';
+  selectedCategory = '';
+  categories: string[] = [];
 
   constructor(
     private shopService: ShopService,
@@ -63,6 +67,8 @@ export class BrowseShopsPage implements OnInit {
 
           return shopWithStatus;
         });
+        this.extractCategories();
+        this.applyFilters();
         this.isLoading = false;
       },
       error: (error) => {
@@ -71,6 +77,40 @@ export class BrowseShopsPage implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  private extractCategories() {
+    // Predefined categories
+    const predefinedCategories = ['Restaurant', 'Snacks', 'Milk Tea', 'Bakery'];
+
+    // Get unique categories from shops
+    const shopCategories = new Set(this.shops.map(shop => shop.category));
+
+    // Combine predefined and shop categories, remove duplicates
+    const allCategories = new Set([...predefinedCategories, ...shopCategories]);
+
+    // Sort alphabetically
+    this.categories = Array.from(allCategories).sort();
+  }
+
+  applyFilters() {
+    this.filteredShops = this.shops.filter(shop => {
+      const matchesSearch = !this.searchTerm ||
+        shop.name.toLowerCase().startsWith(this.searchTerm.toLowerCase());
+      const matchesCategory = !this.selectedCategory ||
+        shop.category === this.selectedCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }
+
+  onSearchChange(event: any) {
+    this.searchTerm = event.target.value || '';
+    this.applyFilters();
+  }
+
+  onCategoryChange(event: any) {
+    this.selectedCategory = event.target.value || '';
+    this.applyFilters();
   }
 
   private getCurrentWeekday(): keyof OpenDays {

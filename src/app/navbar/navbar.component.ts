@@ -15,6 +15,7 @@ import { Reservation } from '../models/reservation.model';
 })
 export class NavbarComponent implements OnInit, OnDestroy {
   currentUser: AuthUser | null = null;
+  userProfile: any = null;
   isMenuOpen = false;
   upcomingReservationsCount = 0;
   private subscriptions: Subscription[] = [];
@@ -43,12 +44,28 @@ export class NavbarComponent implements OnInit, OnDestroy {
       next: (user) => {
         console.log('NavbarComponent: Current user loaded:', user);
         this.currentUser = user;
+        if (user) {
+          this.loadUserProfile(user.uid);
+        }
       },
       error: (error) => {
         console.error('NavbarComponent: Error loading current user:', error);
       }
     });
     this.subscriptions.push(authSub);
+  }
+
+  private loadUserProfile(uid: string): void {
+    const profileSub = this.authService.getUserProfile(uid).subscribe({
+      next: (profile) => {
+        console.log('NavbarComponent: User profile loaded:', profile);
+        this.userProfile = profile;
+      },
+      error: (error) => {
+        console.error('NavbarComponent: Error loading user profile:', error);
+      }
+    });
+    this.subscriptions.push(profileSub);
   }
 
   private loadUpcomingReservationsCount(): void {
@@ -71,8 +88,17 @@ export class NavbarComponent implements OnInit, OnDestroy {
   getUserRole(): string {
     if (!this.currentUser) return 'Guest';
 
-    // Assuming roles are stored in user object or can be derived
-    // You might need to adjust this based on your user model
+    // Use the role from user profile if available
+    if (this.userProfile && this.userProfile.role) {
+      switch (this.userProfile.role) {
+        case 'admin': return 'Admin';
+        case 'shop-owner': return 'Shop Owner';
+        case 'customer': return 'Customer';
+        default: return 'Customer';
+      }
+    }
+
+    // Fallback to email-based detection
     if (this.currentUser.email?.includes('admin')) return 'Admin';
     if (this.currentUser.email?.includes('shop')) return 'Shop Owner';
     return 'Customer';
@@ -84,6 +110,15 @@ export class NavbarComponent implements OnInit, OnDestroy {
       case 'admin': return 'danger';
       case 'shop owner': return 'tertiary';
       default: return 'primary';
+    }
+  }
+
+  getHomeRoute(): string {
+    const role = this.getUserRole().toLowerCase();
+    switch (role) {
+      case 'admin': return '/admin/dashboard';
+      case 'shop owner': return '/shop-owner';
+      default: return '/customer';
     }
   }
 

@@ -226,11 +226,14 @@ ion-grid {
   ion-card-header {
     padding: var(--spacing-md);
     background: white;
-    
+
     ion-card-title {
       font-size: var(--font-size-xl);
       font-weight: var(--font-weight-bold);
-      color: var(--ion-text-color);
+      color: white;
+      background: var(--snackseat-primary);
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border-radius: var(--ion-border-radius-sm);
       margin-bottom: var(--spacing-xs);
       @include line-clamp(1);
     }

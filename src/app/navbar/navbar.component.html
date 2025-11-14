@@ -2,7 +2,7 @@
   <ion-toolbar class="navbar-toolbar">
     <!-- Logo/Brand -->
     <ion-buttons slot="start">
-      <ion-button fill="clear" class="brand-button" routerLink="/customer">
+      <ion-button fill="clear" class="brand-button" [routerLink]="getHomeRoute()">
         <ion-icon name="restaurant-outline" class="brand-icon"></ion-icon>
         <ion-text class="brand-text">SnackSeat</ion-text>
       </ion-button>
@@ -11,12 +11,12 @@
     <!-- Navigation Actions -->
     <ion-buttons slot="end" class="nav-actions">
       <!-- Quick Actions -->
-      <ion-button fill="clear" class="nav-action-btn" routerLink="/customer/browse-shops">
+      <ion-button fill="clear" class="nav-action-btn" routerLink="/customer/browse-shops" *ngIf="getUserRole() !== 'Shop Owner'">
         <ion-icon name="search-outline"></ion-icon>
         <ion-text class="nav-action-text">Browse</ion-text>
       </ion-button>
 
-      <ion-button fill="clear" class="nav-action-btn" routerLink="/customer/my-reservations">
+      <ion-button fill="clear" class="nav-action-btn" routerLink="/customer/my-reservations" *ngIf="getUserRole() !== 'Customer' && getUserRole() !== 'Shop Owner'">
         <ion-icon name="list-outline"></ion-icon>
         <ion-text class="nav-action-text">My Reservations</ion-text>
       </ion-button>
@@ -60,19 +60,19 @@
           <ion-label>Quick Actions</ion-label>
         </ion-item-divider>
 
-        <ion-item button class="menu-item" routerLink="/customer" (click)="closeMenu()">
+        <ion-item button class="menu-item" [routerLink]="getHomeRoute()" (click)="closeMenu()">
           <ion-icon name="home-outline" slot="start" color="primary"></ion-icon>
           <ion-label>Home Dashboard</ion-label>
           <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
         </ion-item>
 
-        <ion-item button class="menu-item" routerLink="/customer/browse-shops" (click)="closeMenu()">
+        <ion-item button class="menu-item" routerLink="/customer/browse-shops" (click)="closeMenu()" *ngIf="getUserRole() !== 'Shop Owner'">
           <ion-icon name="search-outline" slot="start" color="secondary"></ion-icon>
           <ion-label>Browse Shops</ion-label>
           <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
         </ion-item>
 
-        <ion-item button class="menu-item" routerLink="/customer/my-reservations" (click)="closeMenu()">
+        <ion-item button class="menu-item" routerLink="/customer/my-reservations" (click)="closeMenu()" *ngIf="getUserRole() !== 'Customer' && getUserRole() !== 'Shop Owner'">
           <ion-icon name="list-outline" slot="start" color="tertiary"></ion-icon>
           <ion-label>My Reservations</ion-label>
           <ion-badge slot="end" color="primary" *ngIf="upcomingReservationsCount > 0">{{ upcomingReservationsCount }}</ion-badge>
@@ -89,12 +89,6 @@
         <ion-item button class="menu-item" routerLink="/profile" (click)="closeMenu()">
           <ion-icon name="person-outline" slot="start" color="medium"></ion-icon>
           <ion-label>Profile Settings</ion-label>
-          <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
-        </ion-item>
-
-        <ion-item button class="menu-item" routerLink="/notifications" (click)="closeMenu()">
-          <ion-icon name="notifications-outline" slot="start" color="medium"></ion-icon>
-          <ion-label>Notifications</ion-label>
           <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
         </ion-item>
       </ion-item-group>
